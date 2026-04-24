@@ -53,6 +53,7 @@ export default function planningWithFilesExtension(pi: ExtensionAPI): void {
     const status = await summarizeStatus(ctx.cwd);
     if (!status.exists || state.paused) return;
     state = { ...state, active: true, projectDir: ctx.cwd };
+    updatePlanningStatus(ctx, status);
     return {
       message: {
         customType: "planning-with-files-context",
