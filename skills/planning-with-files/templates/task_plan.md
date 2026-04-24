@@ -21,6 +21,26 @@
 -->
 standard
 
+## Assumptions
+<!-- 
+  WHAT: Assumptions that could invalidate this plan if wrong.
+  WHY: Surfacing assumptions before implementation prevents building on false premises.
+  WHEN: Fill in for standard and deep plans. Skip for lightweight tasks.
+  CATEGORIES for coding tasks:
+    - Value: Does the user actually need this? Will it solve the stated problem?
+    - Usability: Will users be able to use this? Is the UX clear?
+    - Viability: Is this feasible given constraints (time, budget, dependencies)?
+    - Feasibility: Can we technically build this? Are the required APIs/libs available?
+  RISK LEVELS:
+    - High Impact, High Risk → Test first (put validation phases before implementation)
+    - High Impact, Low Risk → Proceed with confidence
+    - Low Impact, High Risk → Reject or defer
+    - Low Impact, Low Risk → Ignore
+-->
+| Assumption | Category | Impact | Risk | Action |
+|------------|----------|--------|------|--------|
+|            |          |        |      |        |
+
 ## Current Phase
 <!-- 
   WHAT: Which phase you're currently working on (e.g., "Phase 1", "Phase 3").

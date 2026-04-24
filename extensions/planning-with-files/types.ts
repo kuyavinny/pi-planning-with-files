@@ -50,9 +50,18 @@ export interface ParsedTaskPlan {
   goal: string | null;
   currentPhase: string | null;
   depth: PlanDepth;
+  assumptions: AssumptionRow[];
   phases: PhaseInfo[];
   errorsLogged: number;
   warnings: string[];
+}
+
+export interface AssumptionRow {
+  assumption: string;
+  category: string;
+  impact: string;
+  risk: string;
+  action: string;
 }
 
 export interface PlanStatus {
@@ -61,6 +70,8 @@ export interface PlanStatus {
   currentPhase: string | null;
   goal: string | null;
   depth: PlanDepth;
+  assumptions: AssumptionRow[];
+  unresolvedAssumptionCount: number;
   phases: PhaseInfo[];
   counts: {
     total: number;

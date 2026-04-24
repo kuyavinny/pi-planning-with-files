@@ -8,6 +8,8 @@ const status: PlanStatus = {
   currentPhase: "Phase 1",
   goal: "Goal",
   depth: "standard",
+  assumptions: [],
+  unresolvedAssumptionCount: 0,
   phases: [],
   counts: { total: 5, complete: 2, inProgress: 1, pending: 2, failed: 0, blocked: 0, unknown: 0 },
   files: { taskPlan: true, findings: true, progress: true },

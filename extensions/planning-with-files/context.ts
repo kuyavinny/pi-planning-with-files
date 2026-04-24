@@ -65,6 +65,10 @@ export function buildActivePlanContext(
     `Progress: ${status.counts.complete}/${status.counts.total} complete, ${status.counts.inProgress} in progress, ${status.counts.pending} pending.`,
   ];
 
+  if (status.unresolvedAssumptionCount > 0) {
+    parts.push(`Assumptions: ${status.unresolvedAssumptionCount} unresolved — validate before committing to implementation.`);
+  }
+
   if (phaseBlock) {
     parts.push("", "Current phase details:", phaseBlock);
   }

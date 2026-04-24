@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import type { CompletionCheck, ParsedTaskPlan, PhaseInfo, PhaseStatus, PlanDepth, PlanStatus } from "./types.js";
+import type { AssumptionRow, CompletionCheck, ParsedTaskPlan, PhaseInfo, PhaseStatus, PlanDepth, PlanStatus } from "./types.js";
 import { getPlanningFilesState } from "./files.js";
 import { truncateForContext } from "./security.js";
 
@@ -146,6 +146,28 @@ export function extractCurrentPhase(markdown: string, phases: PhaseInfo[]): stri
   return phases[0]?.title ?? null;
 }
 
+export function parseAssumptions(markdown: string): AssumptionRow[] {
+  const body = sectionBody(stripHtmlComments(markdown), "Assumptions");
+  if (!body) return [];
+  const rows: AssumptionRow[] = [];
+  for (const line of body.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("|") || !trimmed.endsWith("|")) continue;
+    const cells = trimmed.slice(1, -1).split("|").map((c) => c.trim());
+    if (cells.length < 5) continue;
+    const [assumption, category, impact, risk, action] = cells;
+    // Skip header and separator rows
+    if (!assumption || /^-+$/.test(assumption) || assumption.toLowerCase() === "assumption") continue;
+    rows.push({ assumption, category, impact, risk, action });
+  }
+  return rows;
+}
+
+export function countUnresolvedAssumptions(assumptions: AssumptionRow[]): number {
+  // An assumption is "unresolved" if its action is empty or still a placeholder
+  return assumptions.filter((a) => !a.action || a.action === "" || /^\[.*\]$/.test(a.action)).length;
+}
+
 export function parseTaskPlan(markdown: string): ParsedTaskPlan {
   const phases = parsePhases(markdown);
   const warnings: string[] = [];
@@ -154,6 +176,7 @@ export function parseTaskPlan(markdown: string): ParsedTaskPlan {
     goal: extractGoal(markdown),
     currentPhase: extractCurrentPhase(markdown, phases),
     depth: extractDepth(markdown),
+    assumptions: parseAssumptions(markdown),
     phases,
     errorsLogged: countErrorRows(markdown),
     warnings,
@@ -182,9 +205,10 @@ export async function summarizeStatus(projectDir: string): Promise<PlanStatus> {
   const state = await getPlanningFilesState(projectDir);
   const taskPlan = await readIfExists(state.taskPlanPath);
   const progress = await readIfExists(state.progressPath);
-  const parsed = taskPlan ? parseTaskPlan(taskPlan) : { goal: null, currentPhase: null, depth: "standard" as PlanDepth, phases: [], errorsLogged: 0, warnings: [] };
+  const parsed = taskPlan ? parseTaskPlan(taskPlan) : { goal: null, currentPhase: null, depth: "standard" as PlanDepth, assumptions: [] as AssumptionRow[], phases: [], errorsLogged: 0, warnings: [] };
   const counts = countsFor(parsed.phases);
   const complete = counts.total > 0 && counts.complete === counts.total;
+  const unresolvedAssumptionCount = countUnresolvedAssumptions(parsed.assumptions);
 
   const cleanProgress = stripHtmlComments(progress);
 
@@ -194,6 +218,8 @@ export async function summarizeStatus(projectDir: string): Promise<PlanStatus> {
     currentPhase: parsed.currentPhase,
     goal: parsed.goal,
     depth: parsed.depth,
+    assumptions: parsed.assumptions,
+    unresolvedAssumptionCount,
     phases: parsed.phases,
     counts,
     files: {

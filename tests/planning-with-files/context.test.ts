@@ -17,6 +17,8 @@ const status: PlanStatus = {
   currentPhase: "Phase 1: Build",
   goal: "Ship the package",
   depth: "standard",
+  assumptions: [],
+  unresolvedAssumptionCount: 0,
   phases: [
     { index: 1, title: "Phase 1: Build", status: "in_progress", raw: "### Phase 1: Build\n- **Status:** in_progress\n- [ ] Work" },
   ],

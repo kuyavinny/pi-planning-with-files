@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { checkComplete, countErrorRows, extractDepth, formatStatusForDisplay, parsePhases, parseTaskPlan, summarizeStatus } from "../../extensions/planning-with-files/status.js";
+import { checkComplete, countErrorRows, countUnresolvedAssumptions, extractDepth, formatStatusForDisplay, parseAssumptions, parsePhases, parseTaskPlan, summarizeStatus } from "../../extensions/planning-with-files/status.js";
 
 async function withTempProject<T>(fn: (dir: string) => Promise<T>): Promise<T> {
   const dir = await mkdtemp(join(tmpdir(), "pi-pwf-status-"));
@@ -110,5 +110,30 @@ describe("status parsing", () => {
     expect(extractDepth("## Depth\ndeep")).toBe("deep");
     expect(extractDepth("## Depth\nlightweight")).toBe("lightweight");
     expect(extractDepth("no depth section")).toBe("standard");
+  });
+
+  test("parses assumption table from task plan", () => {
+    const withAssumptions = canonical.replace(
+      "## Current Phase",
+      "## Assumptions\n| Assumption | Category | Impact | Risk | Action |\n|------------|----------|--------|------|--------|\n| Users need dark mode | Value | High | High | Validate with user |\n| CSS vars work | Feasibility | High | Low | Proceed |\n\n## Current Phase"
+    );
+    const parsed = parseTaskPlan(withAssumptions);
+    expect(parsed.assumptions).toHaveLength(2);
+    expect(parsed.assumptions[0]?.category).toBe("Value");
+    expect(parsed.assumptions[1]?.impact).toBe("High");
+  });
+
+  test("counts unresolved assumptions (empty action)", () => {
+    const assumptions = [
+      { assumption: "A", category: "Value", impact: "High", risk: "High", action: "" },
+      { assumption: "B", category: "Feasibility", impact: "Low", risk: "Low", action: "Proceed" },
+      { assumption: "C", category: "Usability", impact: "Medium", risk: "Medium", action: "[pending]" },
+    ];
+    expect(countUnresolvedAssumptions(assumptions)).toBe(2); // A and C
+  });
+
+  test("handles empty assumptions section", () => {
+    const parsed = parseTaskPlan(canonical);
+    expect(parsed.assumptions).toHaveLength(0);
   });
 });
