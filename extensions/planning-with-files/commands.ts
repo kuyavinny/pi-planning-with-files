@@ -1,9 +1,9 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import type { PlanDepth } from "./types.js";
+import type { PlanDepth, ParsedTaskPlan } from "./types.js";
 import { unlink } from "node:fs/promises";
 import { ensurePlanningFiles, getPlanningFilesState } from "./files.js";
 import { buildCatchupReport, formatCatchupReport } from "./session-catchup.js";
-import { checkComplete, formatStatusForDisplay, summarizeStatus } from "./status.js";
+import { checkComplete, formatStatusForDisplay, parseTaskPlan, summarizeStatus } from "./status.js";
 import type { ExtensionState } from "./types.js";
 import { clearPlanningStatus, updatePlanningStatus } from "./ui.js";
 
@@ -70,6 +70,100 @@ export function planningKickoffMessage(task: string, depth?: PlanDepth): string 
   }
 
   lines.push("", "Read task_plan.md, findings.md, and progress.md. If the plan is still generic, update it for this task. Then continue from the current phase.");
+  return lines.join("\n");
+}
+
+/** Run a confidence check on a parsed plan and return a human-readable report. */
+export function confidenceCheck(plan: ParsedTaskPlan): string {
+  const sections: Array<{ name: string; score: "strong" | "weak" | "missing"; detail: string }> = [];
+
+  // Goal
+  const goal = plan.goal?.trim();
+  if (!goal || goal === "[One sentence describing the end state]") {
+    sections.push({ name: "Goal", score: "weak", detail: "Goal is missing or still a template placeholder." });
+  } else if (goal.split(/\s+/).length < 5) {
+    sections.push({ name: "Goal", score: "weak", detail: "Goal is very vague. Add specificity: what, for whom, why." });
+  } else {
+    sections.push({ name: "Goal", score: "strong", detail: "Goal is specific enough to guide decisions." });
+  }
+
+  // Depth
+  if (plan.depth === "lightweight") {
+    sections.push({ name: "Depth", score: "strong", detail: "Lightweight task — minimal planning is appropriate." });
+  } else if (plan.depth === "deep") {
+    sections.push({ name: "Depth", score: "strong", detail: "Deep task — full planning methodology expected." });
+  } else {
+    sections.push({ name: "Depth", score: "strong", detail: "Standard task — moderate planning expected." });
+  }
+
+  // Success criteria (check for a success/criteria/outcome section in raw plan)
+  const planText = plan.phases.map((p) => p.raw).join("\n");
+  const hasSuccessSection = /success\s*criteria|desired\s*outcome|definition\s*of\s*done/i.test(planText);
+  if (hasSuccessSection) {
+    sections.push({ name: "Success Criteria", score: "strong", detail: "Plan includes success criteria." });
+  } else {
+    sections.push({ name: "Success Criteria", score: "missing", detail: "No success criteria found. Add a measurable definition of done." });
+  }
+
+  // Assumptions
+  if (plan.depth === "lightweight") {
+    sections.push({ name: "Assumptions", score: "strong", detail: "Skipped for lightweight task (appropriate)." });
+  } else if (plan.assumptions.length === 0) {
+    sections.push({ name: "Assumptions", score: "missing", detail: "No assumptions listed. Surface value/feasibility assumptions before committing to implementation." });
+  } else {
+    const unresolved = plan.assumptions.filter((a) => !a.action || a.action === "" || /^\[.*\]$/.test(a.action));
+    if (unresolved.length > 0) {
+      sections.push({ name: "Assumptions", score: "weak", detail: `${unresolved.length} of ${plan.assumptions.length} assumptions have no validation action. High-risk assumptions need test phases.` });
+    } else {
+      sections.push({ name: "Assumptions", score: "strong", detail: `${plan.assumptions.length} assumptions with validation actions defined.` });
+    }
+  }
+
+  // Phases
+  if (plan.phases.length === 0) {
+    sections.push({ name: "Phases", score: "missing", detail: "No phases defined. Break the task into 3-7 completable phases." });
+  } else if (plan.phases.length < 3) {
+    sections.push({ name: "Phases", score: "weak", detail: `Only ${plan.phases.length} phases — consider breaking into more granular steps with clear deliverables.` });
+  } else {
+    const pendingCount = plan.phases.filter((p) => p.status === "pending").length;
+    sections.push({ name: "Phases", score: "strong", detail: `${plan.phases.length} phases with clear structure. ${pendingCount} still pending.` });
+  }
+
+  // Risks (only for standard/deep)
+  if (plan.depth === "lightweight") {
+    sections.push({ name: "Risks", score: "strong", detail: "Skipped for lightweight task (appropriate)." });
+  } else if (plan.risks === undefined || plan.risks.length === 0) {
+    sections.push({ name: "Risks", score: "missing", detail: "No risks identified. Run a pre-mortem: what could go wrong? Classify as Tiger, Paper Tiger, or Elephant." });
+  } else {
+    sections.push({ name: "Risks", score: "strong", detail: `${plan.risks.length} risks identified.` });
+  }
+
+  // Summary
+  const strong = sections.filter((s) => s.score === "strong").length;
+  const weak = sections.filter((s) => s.score === "weak").length;
+  const missing = sections.filter((s) => s.score === "missing").length;
+
+  const lines: string[] = [
+    "📋 Confidence Check",
+    "",
+    `✅ Strong: ${strong}  ⚠️ Weak: ${weak}  ❌ Missing: ${missing}`,
+    "",
+  ];
+
+  for (const section of sections) {
+    const icon = section.score === "strong" ? "✅" : section.score === "weak" ? "⚠️" : "❌";
+    lines.push(`${icon} ${section.name}: ${section.detail}`);
+  }
+
+  if (missing > 0 || weak > 0) {
+    lines.push("", "💡 Strengthen weak sections by:");
+    for (const section of sections.filter((s) => s.score !== "strong")) {
+      lines.push(`  - ${section.name}: ${section.detail}`);
+    }
+  } else {
+    lines.push("", "✨ Plan looks solid. Proceed with confidence.");
+  }
+
   return lines.join("\n");
 }
 
@@ -231,6 +325,24 @@ export function registerPlanningCommands(pi: ExtensionAPI, getState: () => Exten
       const report = await buildCatchupReport(ctx.cwd, { currentSessionFile, currentBranchEntries });
       const message = formatCatchupReport(report);
       if (ctx.hasUI) ctx.ui.notify(message, report.hasReport ? "warning" : "info");
+    },
+  });
+
+  pi.registerCommand("plan-deepen", {
+    description: "Run a confidence check on the current plan and report weak sections",
+    handler: async (_args, ctx) => {
+      const state = await getPlanningFilesState(ctx.cwd);
+      if (!state.exists.taskPlan) {
+        if (ctx.hasUI) ctx.ui.notify("No active plan. Use /plan <task> to start one.", "info");
+        return;
+      }
+
+      const { readFile } = await import("node:fs/promises");
+      const taskPlan = await readFile(state.taskPlanPath, "utf8");
+      const parsed = parseTaskPlan(taskPlan);
+      const report = confidenceCheck(parsed);
+
+      if (ctx.hasUI) ctx.ui.notify(report, "info");
     },
   });
 }
