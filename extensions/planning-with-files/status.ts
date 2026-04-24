@@ -71,8 +71,10 @@ function parseHeadingPhases(markdown: string): PhaseInfo[] {
   const lines = markdown.split(/\r?\n/);
   const starts: Array<{ index: number; line: string }> = [];
   for (let i = 0; i < lines.length; i++) {
-    if (/^###\s+Phase\b/i.test(lines[i]?.trim() ?? "")) {
-      starts.push({ index: i, line: lines[i]!.trim() });
+    const trimmed = lines[i]?.trim() ?? "";
+    // Match both "### Phase N: Title" and "### UN: Title" (U-ID format)
+    if (/^###\s+(Phase\s+\d+:|U\d+:)/i.test(trimmed)) {
+      starts.push({ index: i, line: trimmed });
     }
   }
 
@@ -80,7 +82,10 @@ function parseHeadingPhases(markdown: string): PhaseInfo[] {
     const end = starts[idx + 1]?.index ?? lines.length;
     const raw = lines.slice(start.index, end).join("\n").trim();
     const title = start.line.replace(/^###\s+/, "").replace(/\s+\[(pending|in_progress|complete|failed|blocked|unknown)\]\s*$/i, "").trim();
-    return { index: idx + 1, title, status: phaseStatusFromBlock(raw, start.line), raw };
+    // Extract U-ID index from title like "U1: Phase Name"
+    const uidMatch = title.match(/^U(\d+):/i);
+    const phaseIndex = uidMatch ? parseInt(uidMatch[1]!, 10) : idx + 1;
+    return { index: phaseIndex, title, status: phaseStatusFromBlock(raw, start.line), raw };
   });
 }
 

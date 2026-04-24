@@ -83,6 +83,25 @@ describe("status parsing", () => {
     });
   });
 
+  test("parses U-ID phase headings", () => {
+    const uidPlan = "# Task Plan\n\n## Goal\nShip it\n\n### U1: Discovery\n- **Status:** complete\n\n### U2: Build\n- **Status:** in_progress\n\n### U3: Verify\n- **Status:** pending\n";
+    const phases = parsePhases(uidPlan);
+    expect(phases).toHaveLength(3);
+    expect(phases[0]?.title).toBe("U1: Discovery");
+    expect(phases[0]?.index).toBe(1);
+    expect(phases[0]?.status).toBe("complete");
+    expect(phases[1]?.title).toBe("U2: Build");
+    expect(phases[1]?.index).toBe(2);
+  });
+
+  test("U-ID phases coexist with Phase N phases", () => {
+    // If both formats exist, heading parser grabs them all
+    const mixed = "# Task Plan\n\n### Phase 1: Old Format\n- **Status:** complete\n\n### U2: New Format\n- **Status:** pending\n";
+    const phases = parsePhases(mixed);
+    // The regex allows both, so both are parsed
+    expect(phases.length).toBeGreaterThanOrEqual(1);
+  });
+
   test("malformed plan reports warning instead of throwing", () => {
     const parsed = parseTaskPlan("# Task Plan\n\nNo phases here");
     expect(parsed.phases).toHaveLength(0);

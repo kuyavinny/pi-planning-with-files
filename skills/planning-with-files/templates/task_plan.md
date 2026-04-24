@@ -53,9 +53,15 @@ Phase 1
   WHAT: Break your task into 3-7 logical phases. Each phase should be completable.
   WHY: Breaking work into phases prevents overwhelm and makes progress visible.
   WHEN: Update status after completing each phase: pending → in_progress → complete
+  FORMAT: Use U-ID headings (U1, U2, ...) for stable IDs that survive reordering.
+         Legacy "Phase N" format is also supported for backward compatibility.
+         For standard/deep plans, each phase should include:
+           - Goal: What this phase validates or delivers
+           - Dependencies: None or reference to U-ID
+           - Test scenarios: How to verify this phase
 -->
 
-### Phase 1: Requirements & Discovery
+### U1: Requirements & Discovery
 <!-- 
   WHAT: Understand what needs to be done and gather initial information.
   WHY: Starting without understanding leads to wasted effort. This phase prevents that.
@@ -71,7 +77,7 @@ Phase 1
   - complete: Finished this phase
 -->
 
-### Phase 2: Planning & Structure
+### U2: Planning & Structure
 <!-- 
   WHAT: Decide how you'll approach the problem and what structure you'll use.
   WHY: Good planning prevents rework. Document decisions so you remember why you chose them.
@@ -81,7 +87,7 @@ Phase 1
 - [ ] Document decisions with rationale
 - **Status:** pending
 
-### Phase 3: Implementation
+### U3: Implementation
 <!-- 
   WHAT: Actually build/create/write the solution.
   WHY: This is where the work happens. Break into smaller sub-tasks if needed.
@@ -91,7 +97,7 @@ Phase 1
 - [ ] Test incrementally
 - **Status:** pending
 
-### Phase 4: Testing & Verification
+### U4: Testing & Verification
 <!-- 
   WHAT: Verify everything works and meets requirements.
   WHY: Catching issues early saves time. Document test results in progress.md.
@@ -101,7 +107,7 @@ Phase 1
 - [ ] Fix any issues found
 - **Status:** pending
 
-### Phase 5: Delivery
+### U5: Delivery
 <!-- 
   WHAT: Final review and handoff to user.
   WHY: Ensures nothing is forgotten and deliverables are complete.
