@@ -37,6 +37,13 @@ function currentPhaseBlock(status: PlanStatus): string {
   return phase?.raw ? stripHtmlComments(phase.raw) : "";
 }
 
+function executionPostureNote(status: PlanStatus): string {
+  if (!status.currentPhase) return "";
+  const phase = status.phases.find((item) => item.title === status.currentPhase || item.title.includes(status.currentPhase ?? ""));
+  if (!phase || !phase.executionPosture || phase.executionPosture === "default") return "";
+  return `Execution posture for current phase: ${phase.executionPosture}`;
+}
+
 export function buildActivePlanContext(
   status: PlanStatus,
   reminders?: ReminderState,
@@ -75,6 +82,11 @@ export function buildActivePlanContext(
 
   if (phaseBlock) {
     parts.push("", "Current phase details:", phaseBlock);
+  }
+
+  const posture = executionPostureNote(status);
+  if (posture) {
+    parts.push("", posture);
   }
 
   parts.push("", "Recent progress:", progress || "(none)");

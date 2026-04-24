@@ -61,12 +61,17 @@ export function planningKickoffMessage(task: string, depth?: PlanDepth): string 
     lines.push("3. Assumptions: Scan for Value, Usability, Viability, Feasibility assumptions. Identify which are high-impact and high-risk.");
     lines.push("4. Decomposition: Use Opportunity-Solution Tree — identify desired outcomes, then opportunities (customer needs), then solutions, then experiments. Each solution becomes a phase. Validation phases come before implementation phases.");
     lines.push("5. Risk Analysis: Classify risks as Tiger (real, must act), Paper Tiger (overblown), or Elephant (unspoken, investigate). Mark launch-blocking risks.");
+    lines.push("6. Research: If this plan depends on facts that change faster than training data (current APIs, library versions, pricing), search the web before finalizing the plan.");
   } else {
     lines.push("Depth: standard — frame before planning:");
     lines.push("1. Problem: What needs to change and why?");
     lines.push("2. Success: How will you verify it's done?");
     lines.push("3. Assumptions: What are you assuming that could be wrong?");
     lines.push("4. Decomposition: Break into phases that validate assumptions before committing to implementation.");
+  }
+
+  if (resolvedDepth !== "lightweight") {
+    lines.push("", "Clarifying questions: If 1-3 quick questions would meaningfully improve this plan, ask them before writing phases. Otherwise proceed with reasonable assumptions.");
   }
 
   lines.push("", "Read task_plan.md, findings.md, and progress.md. If the plan is still generic, update it for this task. Then continue from the current phase.");

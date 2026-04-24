@@ -58,6 +58,7 @@ Phase 1
          For standard/deep plans, each phase should include:
            - Goal: What this phase validates or delivers
            - Dependencies: None or reference to U-ID
+           - Execution posture: default / test-first / characterization-first
            - Test scenarios: How to verify this phase
 -->
 
@@ -134,6 +135,15 @@ Phase 1
 | Risk | Type (Tiger/Paper Tiger/Elephant) | Urgency | Mitigation |
 |------|-------------------------------------|---------|------------|
 |      |                                     |         |            |
+
+## Scope Boundaries
+<!-- 
+  WHAT: Explicit non-goals — what this plan does NOT cover.
+  WHY: Prevents scope creep during execution. If implementation pulls you toward adjacent work, refer back here.
+  WHEN: Fill in for standard and deep plans. Skip for lightweight tasks.
+-->
+- [Explicit non-goal 1]
+- [Explicit non-goal 2]
 
 ## Key Questions
 <!-- 

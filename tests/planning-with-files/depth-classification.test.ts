@@ -86,9 +86,10 @@ describe("planning kickoff message with depth", () => {
     expect(msg).toContain("Success:");
     expect(msg).toContain("Assumptions:");
     expect(msg).toContain("Decomposition:");
+    expect(msg).toContain("Clarifying questions");
   });
 
-  test("deep tasks get full planning methodology", () => {
+  test("deep tasks get full planning methodology with research gate", () => {
     const msg = planningKickoffMessage("redesign the data layer", "deep");
     expect(msg).toContain("Depth: deep");
     expect(msg).toContain("Problem Frame:");
@@ -96,8 +97,13 @@ describe("planning kickoff message with depth", () => {
     expect(msg).toContain("Assumptions:");
     expect(msg).toContain("Opportunity-Solution Tree");
     expect(msg).toContain("Tiger");
-    expect(msg).toContain("Paper Tiger");
-    expect(msg).toContain("Elephant");
+    expect(msg).toContain("Research:");
+    expect(msg).toContain("Clarifying questions");
+  });
+
+  test("lightweight tasks do not get clarifying questions", () => {
+    const msg = planningKickoffMessage("fix typo", "lightweight");
+    expect(msg).not.toContain("Clarifying questions");
   });
 
   test("auto-classifies when no depth provided", () => {
