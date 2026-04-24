@@ -1,0 +1,19 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Development planning files (created in project root at runtime)
+task_plan.md
+findings.md
+progress.md
+
+*.log
+*.tmp
+.nvimlog

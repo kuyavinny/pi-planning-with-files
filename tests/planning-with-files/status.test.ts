@@ -1,0 +1,91 @@
+import { describe, expect, test } from "bun:test";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { checkComplete, countErrorRows, formatStatusForDisplay, parsePhases, parseTaskPlan, summarizeStatus } from "../../extensions/planning-with-files/status.js";
+
+async function withTempProject<T>(fn: (dir: string) => Promise<T>): Promise<T> {
+  const dir = await mkdtemp(join(tmpdir(), "pi-pwf-status-"));
+  try {
+    return await fn(dir);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+}
+
+const canonical = `# Task Plan
+
+## Goal
+Ship the package
+
+## Current Phase
+Phase 2: Build
+
+## Phases
+
+### Phase 1: Discovery
+- **Status:** complete
+
+### Phase 2: Build
+- **Status:** in_progress
+
+### Phase 3: Verify
+- **Status:** pending
+
+## Errors Encountered
+| Error | Attempt | Resolution |
+|-------|---------|------------|
+| Timeout | 1 | Retry |
+`;
+
+describe("status parsing", () => {
+  test("parses canonical phase statuses", () => {
+    const parsed = parseTaskPlan(canonical);
+    expect(parsed.goal).toBe("Ship the package");
+    expect(parsed.currentPhase).toBe("Phase 2: Build");
+    expect(parsed.phases.map((phase) => phase.status)).toEqual(["complete", "in_progress", "pending"]);
+    expect(parsed.errorsLogged).toBe(1);
+  });
+
+  test("parses inline bracket statuses", () => {
+    const phases = parsePhases("### Phase 1: One [complete]\n\n### Phase 2: Two [pending]");
+    expect(phases.map((phase) => phase.status)).toEqual(["complete", "pending"]);
+  });
+
+  test("parses table statuses when headings are absent", () => {
+    const phases = parsePhases("| Phase | Status |\n|---|---|\n| Discovery | complete |\n| Build | in_progress |");
+    expect(phases).toHaveLength(2);
+    expect(phases[1]?.title).toBe("Build");
+    expect(phases[1]?.status).toBe("in_progress");
+  });
+
+  test("does not count error table headers", () => {
+    expect(countErrorRows(canonical)).toBe(1);
+  });
+
+  test("summarizes status from files", async () => {
+    await withTempProject(async (dir) => {
+      await writeFile(join(dir, "task_plan.md"), canonical, "utf8");
+      await writeFile(join(dir, "progress.md"), "line 1\nline 2", "utf8");
+      const status = await summarizeStatus(dir);
+      expect(status.exists).toBe(true);
+      expect(status.counts).toMatchObject({ total: 3, complete: 1, inProgress: 1, pending: 1 });
+      expect(status.complete).toBe(false);
+      expect(formatStatusForDisplay(status)).toContain("1/3 complete");
+    });
+  });
+
+  test("completion requires at least one complete phase and no open phases", async () => {
+    await withTempProject(async (dir) => {
+      await writeFile(join(dir, "task_plan.md"), "### Phase 1: Only\n- **Status:** complete\n", "utf8");
+      const status = await summarizeStatus(dir);
+      expect(checkComplete(status).complete).toBe(true);
+    });
+  });
+
+  test("malformed plan reports warning instead of throwing", () => {
+    const parsed = parseTaskPlan("# Task Plan\n\nNo phases here");
+    expect(parsed.phases).toHaveLength(0);
+    expect(parsed.warnings[0]).toContain("No phases");
+  });
+});

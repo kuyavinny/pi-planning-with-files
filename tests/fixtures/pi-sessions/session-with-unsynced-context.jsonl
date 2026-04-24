@@ -1,0 +1,6 @@
+{"type":"session","id":"s1","timestamp":"2026-04-23T10:00:00Z"}
+{"type":"message","id":"m1","timestamp":"2026-04-23T10:01:00Z","message":{"role":"user","content":"Start implementing the example feature"}}
+{"type":"message","id":"m2","timestamp":"2026-04-23T10:02:00Z","message":{"role":"assistant","content":[{"type":"toolCall","name":"write","arguments":{"path":"task_plan.md","content":"# Task Plan\\n"}}]}}
+{"type":"message","id":"m3","timestamp":"2026-04-23T10:03:00Z","message":{"role":"user","content":"Please also handle edge cases"}}
+{"type":"message","id":"m4","timestamp":"2026-04-23T10:04:00Z","message":{"role":"assistant","content":[{"type":"text","text":"I'll add edge-case handling to Phase 2."}]}}
+{"type":"message","id":"m5","timestamp":"2026-04-23T10:05:00Z","message":{"role":"toolResult","toolName":"edit","content":[{"type":"text","text":"Updated src/feature.ts"}],"isError":false}}

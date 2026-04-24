@@ -1,0 +1,32 @@
+{
+  "name": "pi-planning-with-files",
+  "version": "0.1.0",
+  "description": "Pi-native planning-with-files workflow with skill and extension automation",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "planning",
+    "manus",
+    "agent",
+    "context-engineering"
+  ],
+  "pi": {
+    "extensions": [
+      "extensions/planning-with-files/index.ts"
+    ],
+    "skills": [
+      "skills/planning-with-files"
+    ],
+    "prompts": [
+      "prompts"
+    ]
+  },
+  "scripts": {
+    "test": "bun test"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-coding-agent": "*",
+    "@mariozechner/pi-tui": "*"
+  },
+  "license": "MIT"
+}
