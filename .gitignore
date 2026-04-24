@@ -14,6 +14,14 @@ task_plan.md
 findings.md
 progress.md
 
+# But keep template and fixture files
+!skills/planning-with-files/templates/task_plan.md
+!skills/planning-with-files/templates/findings.md
+!skills/planning-with-files/templates/progress.md
+!tests/fixtures/basic-plan/task_plan.md
+!tests/fixtures/basic-plan/findings.md
+!tests/fixtures/basic-plan/progress.md
+
 *.log
 *.tmp
 .nvimlog
