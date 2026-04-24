@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { checkComplete, countErrorRows, formatStatusForDisplay, parsePhases, parseTaskPlan, summarizeStatus } from "../../extensions/planning-with-files/status.js";
+import { checkComplete, countErrorRows, extractDepth, formatStatusForDisplay, parsePhases, parseTaskPlan, summarizeStatus } from "../../extensions/planning-with-files/status.js";
 
 async function withTempProject<T>(fn: (dir: string) => Promise<T>): Promise<T> {
   const dir = await mkdtemp(join(tmpdir(), "pi-pwf-status-"));
@@ -87,5 +87,28 @@ describe("status parsing", () => {
     const parsed = parseTaskPlan("# Task Plan\n\nNo phases here");
     expect(parsed.phases).toHaveLength(0);
     expect(parsed.warnings[0]).toContain("No phases");
+  });
+
+  test("parses depth field from task plan", () => {
+    const deepPlan = canonical.replace("## Current Phase", "## Depth\ndeep\n\n## Current Phase");
+    const parsed = parseTaskPlan(deepPlan);
+    expect(parsed.depth).toBe("deep");
+  });
+
+  test("defaults depth to standard when missing", () => {
+    const parsed = parseTaskPlan(canonical);
+    expect(parsed.depth).toBe("standard");
+  });
+
+  test("parses lightweight depth", () => {
+    const lw = canonical.replace("## Current Phase", "## Depth\nlightweight\n\n## Current Phase");
+    expect(parseTaskPlan(lw).depth).toBe("lightweight");
+  });
+
+  test("extracts depth from section body", () => {
+    expect(extractDepth("## Depth\nstandard")).toBe("standard");
+    expect(extractDepth("## Depth\ndeep")).toBe("deep");
+    expect(extractDepth("## Depth\nlightweight")).toBe("lightweight");
+    expect(extractDepth("no depth section")).toBe("standard");
   });
 });

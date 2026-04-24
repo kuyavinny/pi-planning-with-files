@@ -1,4 +1,5 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { PlanDepth } from "./types.js";
 import { unlink } from "node:fs/promises";
 import { ensurePlanningFiles, getPlanningFilesState } from "./files.js";
 import { buildCatchupReport, formatCatchupReport } from "./session-catchup.js";
@@ -6,14 +7,70 @@ import { checkComplete, formatStatusForDisplay, summarizeStatus } from "./status
 import type { ExtensionState } from "./types.js";
 import { clearPlanningStatus, updatePlanningStatus } from "./ui.js";
 
-export function planningKickoffMessage(task: string): string {
-  return [
-    "Use the planning-with-files workflow for this task:",
-    "",
-    task,
-    "",
-    "Read task_plan.md, findings.md, and progress.md. If the plan is still generic, update it for this task. Then continue from the current phase.",
-  ].join("\n");
+/** Keywords that suggest a non-trivial planning depth. */
+const DEEP_KEYWORDS = [
+  "redesign", "refactor", "restructure", "migrate", "overhaul", "rewrite",
+  "architecture", "integration", "cross-cutting", "multi-file", 
+  "infrastructure", "platform", "framework", "end-to-end",
+];
+
+const STANDARD_KEYWORDS = [
+  "implement", "build", "add", "create", "develop", "feature", "module",
+  "component", "service", "endpoint", "api", "auth", "database", "deploy",
+  "setup", "configure", "test", "pipeline",
+];
+
+/** Classify task depth from the /plan command args. */
+export function classifyDepth(task: string): PlanDepth {
+  const lower = task.toLowerCase();
+  const wordCount = task.trim().split(/\s+/).length;
+
+  // Explicit depth flags override everything
+  if (/\b(lightweight|simple|quick|trivial|minor|small)\b/i.test(task)) return "lightweight";
+  if (/\b(deep|complex|major|strategic|comprehensive|thorough)\b/i.test(task)) return "deep";
+
+  // Architecture / cross-cutting keywords → deep
+  if (DEEP_KEYWORDS.some((kw) => lower.includes(kw))) return "deep";
+
+  // Feature / implementation keywords → standard
+  if (STANDARD_KEYWORDS.some((kw) => lower.includes(kw))) return "standard";
+
+  // Very short tasks with no keywords → lightweight
+  if (wordCount <= 5) return "lightweight";
+
+  // Default to standard for anything ambiguous but longer
+  return "standard";
+}
+
+/** Build the model kickoff message with depth-appropriate guidance. */
+export function planningKickoffMessage(task: string, depth?: PlanDepth): string {
+  const resolvedDepth = depth ?? classifyDepth(task);
+  const lines: string[] = ["Use the planning-with-files workflow for this task:", "", task, ""];
+
+  if (resolvedDepth === "lightweight") {
+    lines.push("Depth: lightweight — address these before writing phases:");
+    lines.push("  1. Problem: What is the specific issue?");
+    lines.push("  2. Behavior: What should happen instead?");
+    lines.push("  3. Scope: What files or areas are affected?");
+    lines.push("  4. Success: How will you verify it's fixed?");
+    lines.push("  5. Blockers: Any assumptions that could be wrong?");
+  } else if (resolvedDepth === "deep") {
+    lines.push("Depth: deep — produce a thorough plan:");
+    lines.push("1. Problem Frame: What is the core problem, for whom, and why now?");
+    lines.push("2. Success Criteria: Measurable outcomes that define done.");
+    lines.push("3. Assumptions: Scan for Value, Usability, Viability, Feasibility assumptions. Identify which are high-impact and high-risk.");
+    lines.push("4. Decomposition: Use Opportunity-Solution Tree — identify desired outcomes, then opportunities (customer needs), then solutions, then experiments. Each solution becomes a phase. Validation phases come before implementation phases.");
+    lines.push("5. Risk Analysis: Classify risks as Tiger (real, must act), Paper Tiger (overblown), or Elephant (unspoken, investigate). Mark launch-blocking risks.");
+  } else {
+    lines.push("Depth: standard — frame before planning:");
+    lines.push("1. Problem: What needs to change and why?");
+    lines.push("2. Success: How will you verify it's done?");
+    lines.push("3. Assumptions: What are you assuming that could be wrong?");
+    lines.push("4. Decomposition: Break into phases that validate assumptions before committing to implementation.");
+  }
+
+  lines.push("", "Read task_plan.md, findings.md, and progress.md. If the plan is still generic, update it for this task. Then continue from the current phase.");
+  return lines.join("\n");
 }
 
 export function registerPlanningCommands(pi: ExtensionAPI, getState: () => ExtensionState, setState: (state: ExtensionState) => void): void {

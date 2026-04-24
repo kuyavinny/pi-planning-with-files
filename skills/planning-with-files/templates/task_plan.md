@@ -13,6 +13,14 @@
 -->
 [One sentence describing the end state]
 
+## Depth
+<!-- 
+  WHAT: How rigorous this plan should be.
+  VALUES: lightweight (quick fixes, trivial tasks) | standard (features, implementations) | deep (architecture, cross-cutting changes)
+  WHY: Depth gates how much planning overhead to apply. Lightweight tasks skip assumption scanning and pre-mortem.
+-->
+standard
+
 ## Current Phase
 <!-- 
   WHAT: Which phase you're currently working on (e.g., "Phase 1", "Phase 3").

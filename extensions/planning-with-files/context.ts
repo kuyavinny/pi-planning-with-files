@@ -60,6 +60,7 @@ export function buildActivePlanContext(
   const parts = [
     "[planning-with-files] ACTIVE PLAN",
     `Goal: ${status.goal ?? "Unknown"}`,
+    `Depth: ${status.depth}`,
     `Current phase: ${status.currentPhase ?? "Unknown"}`,
     `Progress: ${status.counts.complete}/${status.counts.total} complete, ${status.counts.inProgress} in progress, ${status.counts.pending} pending.`,
   ];

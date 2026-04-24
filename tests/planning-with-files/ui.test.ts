@@ -7,6 +7,7 @@ const status: PlanStatus = {
   projectDir: "repo",
   currentPhase: "Phase 1",
   goal: "Goal",
+  depth: "standard",
   phases: [],
   counts: { total: 5, complete: 2, inProgress: 1, pending: 2, failed: 0, blocked: 0, unknown: 0 },
   files: { taskPlan: true, findings: true, progress: true },

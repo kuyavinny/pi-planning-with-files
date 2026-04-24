@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import type { CompletionCheck, ParsedTaskPlan, PhaseInfo, PhaseStatus, PlanStatus } from "./types.js";
+import type { CompletionCheck, ParsedTaskPlan, PhaseInfo, PhaseStatus, PlanDepth, PlanStatus } from "./types.js";
 import { getPlanningFilesState } from "./files.js";
 import { truncateForContext } from "./security.js";
 
@@ -31,6 +31,16 @@ function sectionBody(markdown: string, heading: string): string | null {
     body.push(line);
   }
   return body.join("\n").trim();
+}
+
+export function extractDepth(markdown: string): PlanDepth {
+  const body = sectionBody(markdown, "Depth");
+  if (!body) return "standard";
+  const line = body.split(/\r?\n/).map((item) => item.trim()).find(Boolean) ?? "";
+  const normalized = line.toLowerCase();
+  if (normalized.includes("lightweight")) return "lightweight";
+  if (normalized.includes("deep")) return "deep";
+  return "standard";
 }
 
 export function extractGoal(markdown: string): string | null {
@@ -143,6 +153,7 @@ export function parseTaskPlan(markdown: string): ParsedTaskPlan {
   return {
     goal: extractGoal(markdown),
     currentPhase: extractCurrentPhase(markdown, phases),
+    depth: extractDepth(markdown),
     phases,
     errorsLogged: countErrorRows(markdown),
     warnings,
@@ -171,7 +182,7 @@ export async function summarizeStatus(projectDir: string): Promise<PlanStatus> {
   const state = await getPlanningFilesState(projectDir);
   const taskPlan = await readIfExists(state.taskPlanPath);
   const progress = await readIfExists(state.progressPath);
-  const parsed = taskPlan ? parseTaskPlan(taskPlan) : { goal: null, currentPhase: null, phases: [], errorsLogged: 0, warnings: [] };
+  const parsed = taskPlan ? parseTaskPlan(taskPlan) : { goal: null, currentPhase: null, depth: "standard" as PlanDepth, phases: [], errorsLogged: 0, warnings: [] };
   const counts = countsFor(parsed.phases);
   const complete = counts.total > 0 && counts.complete === counts.total;
 
@@ -182,6 +193,7 @@ export async function summarizeStatus(projectDir: string): Promise<PlanStatus> {
     projectDir: state.projectDir,
     currentPhase: parsed.currentPhase,
     goal: parsed.goal,
+    depth: parsed.depth,
     phases: parsed.phases,
     counts,
     files: {
@@ -245,6 +257,7 @@ export function formatStatusForModel(status: PlanStatus): string {
   return [
     "[planning-with-files] ACTIVE PLAN",
     `Goal: ${status.goal ?? "Unknown"}`,
+    `Depth: ${status.depth}`,
     `Current phase: ${status.currentPhase ?? "Unknown"}`,
     `Progress: ${status.counts.complete}/${status.counts.total} complete, ${status.counts.inProgress} in progress, ${status.counts.pending} pending.`,
     "",
