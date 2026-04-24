@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { checkComplete, countErrorRows, countUnresolvedAssumptions, extractDepth, formatStatusForDisplay, parseAssumptions, parsePhases, parseTaskPlan, summarizeStatus } from "../../extensions/planning-with-files/status.js";
+import { checkComplete, countErrorRows, countLaunchBlockingRisks, countUnresolvedAssumptions, extractDepth, formatStatusForDisplay, parseAssumptions, parsePhases, parseRisks, parseTaskPlan, summarizeStatus } from "../../extensions/planning-with-files/status.js";
 
 async function withTempProject<T>(fn: (dir: string) => Promise<T>): Promise<T> {
   const dir = await mkdtemp(join(tmpdir(), "pi-pwf-status-"));
@@ -154,5 +154,29 @@ describe("status parsing", () => {
   test("handles empty assumptions section", () => {
     const parsed = parseTaskPlan(canonical);
     expect(parsed.assumptions).toHaveLength(0);
+  });
+
+  test("parses risk table from task plan", () => {
+    const withRisks = canonical.replace(
+      "## Errors Encountered",
+      "## Risks\n| Risk | Type | Urgency | Mitigation |\n|------|------|----------|-------------|\n| Token expiry breaks auth | Tiger | launch-blocking | Add refresh logic |\n| Users might not like the icon | Paper Tiger | track | Monitor feedback |\n\n## Errors Encountered"
+    );
+    const parsed = parseTaskPlan(withRisks);
+    expect(parsed.risks).toHaveLength(2);
+    expect(parsed.risks[0]?.type).toBe("Tiger");
+    expect(parsed.risks[0]?.urgency).toBe("launch-blocking");
+  });
+
+  test("counts launch-blocking risks", () => {
+    const risks = [
+      { risk: "Auth", type: "Tiger", urgency: "launch-blocking", mitigation: "Fix" },
+      { risk: "Icon", type: "Paper Tiger", urgency: "track", mitigation: "Monitor" },
+    ];
+    expect(countLaunchBlockingRisks(risks)).toBe(1);
+  });
+
+  test("handles empty risk section", () => {
+    const parsed = parseTaskPlan(canonical);
+    expect(parsed.risks).toHaveLength(0);
   });
 });

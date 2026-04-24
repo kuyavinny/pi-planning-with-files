@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import type { AssumptionRow, CompletionCheck, ParsedTaskPlan, PhaseInfo, PhaseStatus, PlanDepth, PlanStatus } from "./types.js";
+import type { AssumptionRow, CompletionCheck, ParsedTaskPlan, PhaseInfo, PhaseStatus, PlanDepth, PlanStatus, RiskRow } from "./types.js";
 import { getPlanningFilesState } from "./files.js";
 import { truncateForContext } from "./security.js";
 
@@ -173,6 +173,27 @@ export function countUnresolvedAssumptions(assumptions: AssumptionRow[]): number
   return assumptions.filter((a) => !a.action || a.action === "" || /^\[.*\]$/.test(a.action)).length;
 }
 
+export function parseRisks(markdown: string): RiskRow[] {
+  const body = sectionBody(stripHtmlComments(markdown), "Risks");
+  if (!body) return [];
+  const rows: RiskRow[] = [];
+  for (const line of body.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("|") || !trimmed.endsWith("|")) continue;
+    const cells = trimmed.slice(1, -1).split("|").map((c) => c.trim());
+    if (cells.length < 4) continue;
+    const [risk, type, urgency, mitigation] = cells;
+    // Skip header and separator rows
+    if (!risk || /^-+$/.test(risk) || risk.toLowerCase() === "risk") continue;
+    rows.push({ risk, type, urgency, mitigation });
+  }
+  return rows;
+}
+
+export function countLaunchBlockingRisks(risks: RiskRow[]): number {
+  return risks.filter((r) => /launch-block/i.test(r.urgency) || /block/i.test(r.urgency)).length;
+}
+
 export function parseTaskPlan(markdown: string): ParsedTaskPlan {
   const phases = parsePhases(markdown);
   const warnings: string[] = [];
@@ -182,6 +203,7 @@ export function parseTaskPlan(markdown: string): ParsedTaskPlan {
     currentPhase: extractCurrentPhase(markdown, phases),
     depth: extractDepth(markdown),
     assumptions: parseAssumptions(markdown),
+    risks: parseRisks(markdown),
     phases,
     errorsLogged: countErrorRows(markdown),
     warnings,
@@ -210,10 +232,11 @@ export async function summarizeStatus(projectDir: string): Promise<PlanStatus> {
   const state = await getPlanningFilesState(projectDir);
   const taskPlan = await readIfExists(state.taskPlanPath);
   const progress = await readIfExists(state.progressPath);
-  const parsed = taskPlan ? parseTaskPlan(taskPlan) : { goal: null, currentPhase: null, depth: "standard" as PlanDepth, assumptions: [] as AssumptionRow[], phases: [], errorsLogged: 0, warnings: [] };
+  const parsed = taskPlan ? parseTaskPlan(taskPlan) : { goal: null, currentPhase: null, depth: "standard" as PlanDepth, assumptions: [] as AssumptionRow[], risks: [] as RiskRow[], phases: [], errorsLogged: 0, warnings: [] };
   const counts = countsFor(parsed.phases);
   const complete = counts.total > 0 && counts.complete === counts.total;
   const unresolvedAssumptionCount = countUnresolvedAssumptions(parsed.assumptions);
+  const launchBlockingRiskCount = countLaunchBlockingRisks(parsed.risks);
 
   const cleanProgress = stripHtmlComments(progress);
 
@@ -224,7 +247,9 @@ export async function summarizeStatus(projectDir: string): Promise<PlanStatus> {
     goal: parsed.goal,
     depth: parsed.depth,
     assumptions: parsed.assumptions,
+    risks: parsed.risks,
     unresolvedAssumptionCount,
+    launchBlockingRiskCount,
     phases: parsed.phases,
     counts,
     files: {

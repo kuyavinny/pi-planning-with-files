@@ -69,6 +69,10 @@ export function buildActivePlanContext(
     parts.push(`Assumptions: ${status.unresolvedAssumptionCount} unresolved — validate before committing to implementation.`);
   }
 
+  if (status.launchBlockingRiskCount > 0) {
+    parts.push(`Risks: ${status.launchBlockingRiskCount} launch-blocking — resolve before marking plan complete.`);
+  }
+
   if (phaseBlock) {
     parts.push("", "Current phase details:", phaseBlock);
   }

@@ -64,6 +64,13 @@ export interface AssumptionRow {
   action: string;
 }
 
+export interface RiskRow {
+  risk: string;
+  type: string;
+  urgency: string;
+  mitigation: string;
+}
+
 export interface PlanStatus {
   exists: boolean;
   projectDir: string;
@@ -71,7 +78,9 @@ export interface PlanStatus {
   goal: string | null;
   depth: PlanDepth;
   assumptions: AssumptionRow[];
+  risks: RiskRow[];
   unresolvedAssumptionCount: number;
+  launchBlockingRiskCount: number;
   phases: PhaseInfo[];
   counts: {
     total: number;

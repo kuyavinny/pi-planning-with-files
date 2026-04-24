@@ -117,6 +117,24 @@ Phase 1
 - [ ] Deliver to user
 - **Status:** pending
 
+## Risks
+<!-- 
+  WHAT: Proactive risk identification before errors happen.
+  WHY: Pre-mortems catch problems early. Tiger risks need action, Paper Tigers are overblown, Elephants need investigation.
+  WHEN: Fill in for standard and deep plans. Skip for lightweight tasks.
+  RISK TYPES:
+    - Tiger: Real problem that needs action now
+    - Paper Tiger: Overblown concern — monitor but don't act yet
+    - Elephant: Unspoken risk that needs investigation
+  URGENCY LEVELS:
+    - launch-blocking: Must resolve before shipping
+    - fast-follow: Resolve soon after shipping
+    - track: Monitor, no action needed now
+-->
+| Risk | Type (Tiger/Paper Tiger/Elephant) | Urgency | Mitigation |
+|------|-------------------------------------|---------|------------|
+|      |                                     |         |            |
+
 ## Key Questions
 <!-- 
   WHAT: Important questions you need to answer during the task.
