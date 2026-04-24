@@ -3,7 +3,7 @@ name: planning-with-files
 description: Implements Manus-style file-based planning in Pi. Use for complex multi-step tasks, research projects, implementation work, or any task likely to require 5+ tool calls. Creates and maintains task_plan.md, findings.md, and progress.md in the project root.
 license: MIT
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Planning with Files for Pi
@@ -40,7 +40,62 @@ Before starting complex work:
 3. If they are generic templates, update them for the user's task.
 4. Continue from the current phase in `task_plan.md`.
 
-The Pi extension provides `/plan` (alias `/pwf`), `/plan-status`, `/plan-check`, and `/plan-catchup` commands. It also registers model-callable tools (`planning_with_files_init`, `planning_with_files_status`, `planning_with_files_check_complete`). If automation is unavailable, create the files manually from `templates/`.
+The Pi extension provides `/plan` (alias `/pwf`), `/plan-status`, `/plan-check`, `/plan-catchup`, `/plan-deepen`, `/plan-off`, `/plan-on`, `/plan-done`, and `/plan-phases` commands. It also registers model-callable tools (`planning_with_files_init`, `planning_with_files_status`, `planning_with_files_check_complete`). If automation is unavailable, create the files manually from `templates/`.
+
+## Planning Depth
+
+When `/plan` is called, the extension classifies the task depth as **lightweight**, **standard**, or **deep**. Depth gates how much planning overhead to apply:
+
+| Depth | When | Planning Method |
+|---|---|---|
+| Lightweight | Short tasks, quick fixes, no architecture keywords | 5-question bootstrap (problem, behavior, scope, success, blockers) |
+| Standard | Feature work, implementations, medium complexity | Frame before planning (problem, success, assumptions, decomposition) |
+| Deep | Architecture changes, refactorings, cross-cutting concerns | Full methodology (problem frame, success criteria, assumption scan, OST decomposition, pre-mortem) |
+
+## Decomposition Methods
+
+### For Standard and Deep Plans
+
+Before writing phases, address:
+1. **Problem**: What needs to change and why?
+2. **Success**: How will you verify it's done?
+3. **Assumptions**: What are you assuming that could be wrong? (Categories: Value, Usability, Viability, Feasibility)
+4. **Decomposition**: Break into phases that validate assumptions before committing to implementation.
+
+### For Deep Plans
+
+Use **Opportunity-Solution Tree (OST)** decomposition:
+1. **Desired Outcome**: What measurable result do you want?
+2. **Opportunities**: What customer needs or problems could you address? (Prioritize opportunities, not features)
+3. **Solutions**: For each opportunity, what are possible solutions?
+4. **Experiments**: How will you validate that a solution works before committing?
+
+Each solution becomes a phase. Validation phases come before implementation phases.
+
+### Risk Classification (Pre-Mortem)
+
+For standard and deep plans, classify risks:
+- **Tiger**: Real problem that needs action now
+- **Paper Tiger**: Overblown concern — monitor but don't act yet
+- **Elephant**: Unspoken risk that needs investigation
+
+Urgency: **launch-blocking** (must resolve before shipping), **fast-follow** (resolve soon after), **track** (monitor, no action now).
+
+## Phase Format
+
+Use U-ID headings for stable IDs that survive reordering:
+
+```markdown
+### U1: Discovery
+- **Goal:** Understand the problem space
+- **Dependencies:** None
+- **Test scenarios:** List files, verify understanding
+- [ ] Task item 1
+- [ ] Task item 2
+- **Status:** pending
+```
+
+Legacy `### Phase N:` format also works for backward compatibility.
 
 ## Critical Rules
 

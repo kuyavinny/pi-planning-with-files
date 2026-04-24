@@ -22,7 +22,7 @@ describe("extension lifecycle wiring", () => {
       "planning_with_files_init",
       "planning_with_files_status",
     ]);
-    expect(commands.sort()).toEqual(["plan", "plan-catchup", "plan-check", "plan-done", "plan-off", "plan-on", "plan-phases", "plan-status", "pwf"]);
+    expect(commands.sort()).toEqual(["plan", "plan-catchup", "plan-check", "plan-deepen", "plan-done", "plan-off", "plan-on", "plan-phases", "plan-status", "pwf"]);
     expect(events.sort()).toEqual([
       "agent_end",
       "before_agent_start",

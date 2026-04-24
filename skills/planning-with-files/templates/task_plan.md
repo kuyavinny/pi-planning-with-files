@@ -13,6 +13,34 @@
 -->
 [One sentence describing the end state]
 
+## Depth
+<!-- 
+  WHAT: How rigorous this plan should be.
+  VALUES: lightweight (quick fixes, trivial tasks) | standard (features, implementations) | deep (architecture, cross-cutting changes)
+  WHY: Depth gates how much planning overhead to apply. Lightweight tasks skip assumption scanning and pre-mortem.
+-->
+standard
+
+## Assumptions
+<!-- 
+  WHAT: Assumptions that could invalidate this plan if wrong.
+  WHY: Surfacing assumptions before implementation prevents building on false premises.
+  WHEN: Fill in for standard and deep plans. Skip for lightweight tasks.
+  CATEGORIES for coding tasks:
+    - Value: Does the user actually need this? Will it solve the stated problem?
+    - Usability: Will users be able to use this? Is the UX clear?
+    - Viability: Is this feasible given constraints (time, budget, dependencies)?
+    - Feasibility: Can we technically build this? Are the required APIs/libs available?
+  RISK LEVELS:
+    - High Impact, High Risk → Test first (put validation phases before implementation)
+    - High Impact, Low Risk → Proceed with confidence
+    - Low Impact, High Risk → Reject or defer
+    - Low Impact, Low Risk → Ignore
+-->
+| Assumption | Category | Impact | Risk | Action |
+|------------|----------|--------|------|--------|
+|            |          |        |      |        |
+
 ## Current Phase
 <!-- 
   WHAT: Which phase you're currently working on (e.g., "Phase 1", "Phase 3").
@@ -25,9 +53,15 @@ Phase 1
   WHAT: Break your task into 3-7 logical phases. Each phase should be completable.
   WHY: Breaking work into phases prevents overwhelm and makes progress visible.
   WHEN: Update status after completing each phase: pending → in_progress → complete
+  FORMAT: Use U-ID headings (U1, U2, ...) for stable IDs that survive reordering.
+         Legacy "Phase N" format is also supported for backward compatibility.
+         For standard/deep plans, each phase should include:
+           - Goal: What this phase validates or delivers
+           - Dependencies: None or reference to U-ID
+           - Test scenarios: How to verify this phase
 -->
 
-### Phase 1: Requirements & Discovery
+### U1: Requirements & Discovery
 <!-- 
   WHAT: Understand what needs to be done and gather initial information.
   WHY: Starting without understanding leads to wasted effort. This phase prevents that.
@@ -43,7 +77,7 @@ Phase 1
   - complete: Finished this phase
 -->
 
-### Phase 2: Planning & Structure
+### U2: Planning & Structure
 <!-- 
   WHAT: Decide how you'll approach the problem and what structure you'll use.
   WHY: Good planning prevents rework. Document decisions so you remember why you chose them.
@@ -53,7 +87,7 @@ Phase 1
 - [ ] Document decisions with rationale
 - **Status:** pending
 
-### Phase 3: Implementation
+### U3: Implementation
 <!-- 
   WHAT: Actually build/create/write the solution.
   WHY: This is where the work happens. Break into smaller sub-tasks if needed.
@@ -63,7 +97,7 @@ Phase 1
 - [ ] Test incrementally
 - **Status:** pending
 
-### Phase 4: Testing & Verification
+### U4: Testing & Verification
 <!-- 
   WHAT: Verify everything works and meets requirements.
   WHY: Catching issues early saves time. Document test results in progress.md.
@@ -73,7 +107,7 @@ Phase 1
 - [ ] Fix any issues found
 - **Status:** pending
 
-### Phase 5: Delivery
+### U5: Delivery
 <!-- 
   WHAT: Final review and handoff to user.
   WHY: Ensures nothing is forgotten and deliverables are complete.
@@ -82,6 +116,24 @@ Phase 1
 - [ ] Ensure deliverables are complete
 - [ ] Deliver to user
 - **Status:** pending
+
+## Risks
+<!-- 
+  WHAT: Proactive risk identification before errors happen.
+  WHY: Pre-mortems catch problems early. Tiger risks need action, Paper Tigers are overblown, Elephants need investigation.
+  WHEN: Fill in for standard and deep plans. Skip for lightweight tasks.
+  RISK TYPES:
+    - Tiger: Real problem that needs action now
+    - Paper Tiger: Overblown concern — monitor but don't act yet
+    - Elephant: Unspoken risk that needs investigation
+  URGENCY LEVELS:
+    - launch-blocking: Must resolve before shipping
+    - fast-follow: Resolve soon after shipping
+    - track: Monitor, no action needed now
+-->
+| Risk | Type (Tiger/Paper Tiger/Elephant) | Urgency | Mitigation |
+|------|-------------------------------------|---------|------------|
+|      |                                     |         |            |
 
 ## Key Questions
 <!-- 

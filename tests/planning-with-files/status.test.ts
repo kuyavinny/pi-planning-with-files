@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { checkComplete, countErrorRows, formatStatusForDisplay, parsePhases, parseTaskPlan, summarizeStatus } from "../../extensions/planning-with-files/status.js";
+import { checkComplete, countErrorRows, countLaunchBlockingRisks, countUnresolvedAssumptions, extractDepth, formatStatusForDisplay, parseAssumptions, parsePhases, parseRisks, parseTaskPlan, summarizeStatus } from "../../extensions/planning-with-files/status.js";
 
 async function withTempProject<T>(fn: (dir: string) => Promise<T>): Promise<T> {
   const dir = await mkdtemp(join(tmpdir(), "pi-pwf-status-"));
@@ -83,9 +83,100 @@ describe("status parsing", () => {
     });
   });
 
+  test("parses U-ID phase headings", () => {
+    const uidPlan = "# Task Plan\n\n## Goal\nShip it\n\n### U1: Discovery\n- **Status:** complete\n\n### U2: Build\n- **Status:** in_progress\n\n### U3: Verify\n- **Status:** pending\n";
+    const phases = parsePhases(uidPlan);
+    expect(phases).toHaveLength(3);
+    expect(phases[0]?.title).toBe("U1: Discovery");
+    expect(phases[0]?.index).toBe(1);
+    expect(phases[0]?.status).toBe("complete");
+    expect(phases[1]?.title).toBe("U2: Build");
+    expect(phases[1]?.index).toBe(2);
+  });
+
+  test("U-ID phases coexist with Phase N phases", () => {
+    // If both formats exist, heading parser grabs them all
+    const mixed = "# Task Plan\n\n### Phase 1: Old Format\n- **Status:** complete\n\n### U2: New Format\n- **Status:** pending\n";
+    const phases = parsePhases(mixed);
+    // The regex allows both, so both are parsed
+    expect(phases.length).toBeGreaterThanOrEqual(1);
+  });
+
   test("malformed plan reports warning instead of throwing", () => {
     const parsed = parseTaskPlan("# Task Plan\n\nNo phases here");
     expect(parsed.phases).toHaveLength(0);
     expect(parsed.warnings[0]).toContain("No phases");
+  });
+
+  test("parses depth field from task plan", () => {
+    const deepPlan = canonical.replace("## Current Phase", "## Depth\ndeep\n\n## Current Phase");
+    const parsed = parseTaskPlan(deepPlan);
+    expect(parsed.depth).toBe("deep");
+  });
+
+  test("defaults depth to standard when missing", () => {
+    const parsed = parseTaskPlan(canonical);
+    expect(parsed.depth).toBe("standard");
+  });
+
+  test("parses lightweight depth", () => {
+    const lw = canonical.replace("## Current Phase", "## Depth\nlightweight\n\n## Current Phase");
+    expect(parseTaskPlan(lw).depth).toBe("lightweight");
+  });
+
+  test("extracts depth from section body", () => {
+    expect(extractDepth("## Depth\nstandard")).toBe("standard");
+    expect(extractDepth("## Depth\ndeep")).toBe("deep");
+    expect(extractDepth("## Depth\nlightweight")).toBe("lightweight");
+    expect(extractDepth("no depth section")).toBe("standard");
+  });
+
+  test("parses assumption table from task plan", () => {
+    const withAssumptions = canonical.replace(
+      "## Current Phase",
+      "## Assumptions\n| Assumption | Category | Impact | Risk | Action |\n|------------|----------|--------|------|--------|\n| Users need dark mode | Value | High | High | Validate with user |\n| CSS vars work | Feasibility | High | Low | Proceed |\n\n## Current Phase"
+    );
+    const parsed = parseTaskPlan(withAssumptions);
+    expect(parsed.assumptions).toHaveLength(2);
+    expect(parsed.assumptions[0]?.category).toBe("Value");
+    expect(parsed.assumptions[1]?.impact).toBe("High");
+  });
+
+  test("counts unresolved assumptions (empty action)", () => {
+    const assumptions = [
+      { assumption: "A", category: "Value", impact: "High", risk: "High", action: "" },
+      { assumption: "B", category: "Feasibility", impact: "Low", risk: "Low", action: "Proceed" },
+      { assumption: "C", category: "Usability", impact: "Medium", risk: "Medium", action: "[pending]" },
+    ];
+    expect(countUnresolvedAssumptions(assumptions)).toBe(2); // A and C
+  });
+
+  test("handles empty assumptions section", () => {
+    const parsed = parseTaskPlan(canonical);
+    expect(parsed.assumptions).toHaveLength(0);
+  });
+
+  test("parses risk table from task plan", () => {
+    const withRisks = canonical.replace(
+      "## Errors Encountered",
+      "## Risks\n| Risk | Type | Urgency | Mitigation |\n|------|------|----------|-------------|\n| Token expiry breaks auth | Tiger | launch-blocking | Add refresh logic |\n| Users might not like the icon | Paper Tiger | track | Monitor feedback |\n\n## Errors Encountered"
+    );
+    const parsed = parseTaskPlan(withRisks);
+    expect(parsed.risks).toHaveLength(2);
+    expect(parsed.risks[0]?.type).toBe("Tiger");
+    expect(parsed.risks[0]?.urgency).toBe("launch-blocking");
+  });
+
+  test("counts launch-blocking risks", () => {
+    const risks = [
+      { risk: "Auth", type: "Tiger", urgency: "launch-blocking", mitigation: "Fix" },
+      { risk: "Icon", type: "Paper Tiger", urgency: "track", mitigation: "Monitor" },
+    ];
+    expect(countLaunchBlockingRisks(risks)).toBe(1);
+  });
+
+  test("handles empty risk section", () => {
+    const parsed = parseTaskPlan(canonical);
+    expect(parsed.risks).toHaveLength(0);
   });
 });

@@ -1,4 +1,4 @@
-import type { ExtensionState, ReminderState } from "./types.js";
+import type { ExtensionState, PlanDepth, ReminderState } from "./types.js";
 
 export const STATE_CUSTOM_TYPE = "planning-with-files";
 
@@ -21,6 +21,7 @@ export function defaultExtensionState(): ExtensionState {
     projectDir: null,
     reminders: defaultReminderState(),
     lastUserIntent: "unknown",
+    planDepth: "standard",
   };
 }
 
@@ -47,12 +48,16 @@ export function normalizeExtensionState(value: unknown): ExtensionState {
     ? input.lastUserIntent
     : "unknown";
 
+  const validDepths: PlanDepth[] = ["lightweight", "standard", "deep"];
+  const planDepth = validDepths.includes(input.planDepth as PlanDepth) ? input.planDepth as PlanDepth : "standard";
+
   return {
     active: Boolean(input.active),
     paused: Boolean(input.paused),
     projectDir: typeof input.projectDir === "string" ? input.projectDir : null,
     reminders: normalizeReminderState(input.reminders),
     lastUserIntent,
+    planDepth,
   };
 }
 

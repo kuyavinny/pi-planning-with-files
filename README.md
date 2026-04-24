@@ -12,7 +12,7 @@ This package pairs a **Pi skill** (workflow instructions, templates, and referen
 - **Bounded context injection** — the extension injects a concise status summary and active reminders into the model context before each agent turn.
 - **Smart reminders** — progress reminders when source files change, findings reminders after read/search operations, error reminders with escalation on repeated failures, and at most one completion reminder per user prompt.
 - **Session catchup** — scans previous Pi session JSONL files for unsynced planning context after the last planning file mutation.
-- **User commands** — `/plan`, `/pwf`, `/plan-status`, `/plan-check`, `/plan-catchup`, `/plan-done`.
+- **User commands** — `/plan`, `/pwf`, `/plan-status`, `/plan-check`, `/plan-catchup`, `/plan-deepen`, `/plan-done`, `/plan-off`, `/plan-on`, `/plan-phases`.
 - **Model-callable tools** — `planning_with_files_init`, `planning_with_files_status`, `planning_with_files_check_complete`.
 - **TUI footer status** — shows `📋 PwF Phase 2/5` when an active plan exists.
 
@@ -41,7 +41,8 @@ To **deactivate** automation, remove or rename `task_plan.md`.
 
 | Command | Alias | Description |
 |---------|-------|-------------|
-| `/plan <task>` | `/pwf <task>` | Create planning files if missing and send a kickoff message to the model. Supports `--analytics` flag for analytics-oriented templates. |
+| `/plan <task>` | `/pwf <task>` | Create planning files if missing and send a kickoff message to the model. Supports `--analytics` flag for analytics-oriented templates. Depth is auto-classified as lightweight, standard, or deep based on the task description. |
+| `/plan-deepen` | | Run a confidence check on the current plan. Reports strong/weak/missing sections with actionable suggestions. Does not auto-modify the plan. |
 | `/plan-status` | | Parse and display the current plan status without invoking the model. |
 | `/plan-check` | | Check whether all `task_plan.md` phases are complete and display the result. |
 | `/plan-catchup` | | Scan previous Pi session files for unsynced planning context after the last planning file mutation. |
@@ -157,6 +158,24 @@ Pure modules:
 ```
 
 All pure modules avoid Pi runtime coupling and are tested independently. The extension entry point (`index.ts`) is the only file that depends on `ExtensionAPI`.
+
+## Planning Depth and Decomposition
+
+The `/plan` command auto-classifies task depth:
+
+| Depth | Signals | Planning Method |
+|-------|---------|-----------------|
+| Lightweight | Short tasks, quick fixes, no architecture keywords | 5-question bootstrap |
+| Standard | Feature work, implementations | Problem framing + assumption validation |
+| Deep | Architecture changes, refactorings, cross-cutting concerns | Full OST decomposition + pre-mortem |
+
+`/plan-deepen` runs a confidence check that scores the plan's Goal, Depth, Success Criteria, Assumptions, Phases, and Risks as strong/weak/missing. It reports sections that need strengthening without auto-modifying the plan.
+
+The `task_plan.md` template includes:
+- `## Depth` field (lightweight/standard/deep)
+- `## Assumptions` table with categories (Value, Usability, Viability, Feasibility) and Impact/Risk levels
+- `## Risks` table with Tiger/Paper Tiger/Elephant classification and launch-blocking/fast-follow/track urgency
+- U-ID phase headings (`U1:`, `U2:`, etc.) for stable phase identification
 
 ## Credits
 

@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import type { CompletionCheck, ParsedTaskPlan, PhaseInfo, PhaseStatus, PlanStatus } from "./types.js";
+import type { AssumptionRow, CompletionCheck, ParsedTaskPlan, PhaseInfo, PhaseStatus, PlanDepth, PlanStatus, RiskRow } from "./types.js";
 import { getPlanningFilesState } from "./files.js";
 import { truncateForContext } from "./security.js";
 
@@ -33,6 +33,16 @@ function sectionBody(markdown: string, heading: string): string | null {
   return body.join("\n").trim();
 }
 
+export function extractDepth(markdown: string): PlanDepth {
+  const body = sectionBody(markdown, "Depth");
+  if (!body) return "standard";
+  const line = body.split(/\r?\n/).map((item) => item.trim()).find(Boolean) ?? "";
+  const normalized = line.toLowerCase();
+  if (normalized.includes("lightweight")) return "lightweight";
+  if (normalized.includes("deep")) return "deep";
+  return "standard";
+}
+
 export function extractGoal(markdown: string): string | null {
   const body = sectionBody(markdown, "Goal");
   if (!body) return null;
@@ -61,8 +71,10 @@ function parseHeadingPhases(markdown: string): PhaseInfo[] {
   const lines = markdown.split(/\r?\n/);
   const starts: Array<{ index: number; line: string }> = [];
   for (let i = 0; i < lines.length; i++) {
-    if (/^###\s+Phase\b/i.test(lines[i]?.trim() ?? "")) {
-      starts.push({ index: i, line: lines[i]!.trim() });
+    const trimmed = lines[i]?.trim() ?? "";
+    // Match both "### Phase N: Title" and "### UN: Title" (U-ID format)
+    if (/^###\s+(Phase\s+\d+:|U\d+:)/i.test(trimmed)) {
+      starts.push({ index: i, line: trimmed });
     }
   }
 
@@ -70,7 +82,10 @@ function parseHeadingPhases(markdown: string): PhaseInfo[] {
     const end = starts[idx + 1]?.index ?? lines.length;
     const raw = lines.slice(start.index, end).join("\n").trim();
     const title = start.line.replace(/^###\s+/, "").replace(/\s+\[(pending|in_progress|complete|failed|blocked|unknown)\]\s*$/i, "").trim();
-    return { index: idx + 1, title, status: phaseStatusFromBlock(raw, start.line), raw };
+    // Extract U-ID index from title like "U1: Phase Name"
+    const uidMatch = title.match(/^U(\d+):/i);
+    const phaseIndex = uidMatch ? parseInt(uidMatch[1]!, 10) : idx + 1;
+    return { index: phaseIndex, title, status: phaseStatusFromBlock(raw, start.line), raw };
   });
 }
 
@@ -136,6 +151,49 @@ export function extractCurrentPhase(markdown: string, phases: PhaseInfo[]): stri
   return phases[0]?.title ?? null;
 }
 
+export function parseAssumptions(markdown: string): AssumptionRow[] {
+  const body = sectionBody(stripHtmlComments(markdown), "Assumptions");
+  if (!body) return [];
+  const rows: AssumptionRow[] = [];
+  for (const line of body.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("|") || !trimmed.endsWith("|")) continue;
+    const cells = trimmed.slice(1, -1).split("|").map((c) => c.trim());
+    if (cells.length < 5) continue;
+    const [assumption, category, impact, risk, action] = cells;
+    // Skip header and separator rows
+    if (!assumption || /^-+$/.test(assumption) || assumption.toLowerCase() === "assumption") continue;
+    rows.push({ assumption, category, impact, risk, action });
+  }
+  return rows;
+}
+
+export function countUnresolvedAssumptions(assumptions: AssumptionRow[]): number {
+  // An assumption is "unresolved" if its action is empty or still a placeholder
+  return assumptions.filter((a) => !a.action || a.action === "" || /^\[.*\]$/.test(a.action)).length;
+}
+
+export function parseRisks(markdown: string): RiskRow[] {
+  const body = sectionBody(stripHtmlComments(markdown), "Risks");
+  if (!body) return [];
+  const rows: RiskRow[] = [];
+  for (const line of body.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("|") || !trimmed.endsWith("|")) continue;
+    const cells = trimmed.slice(1, -1).split("|").map((c) => c.trim());
+    if (cells.length < 4) continue;
+    const [risk, type, urgency, mitigation] = cells;
+    // Skip header and separator rows
+    if (!risk || /^-+$/.test(risk) || risk.toLowerCase() === "risk") continue;
+    rows.push({ risk, type, urgency, mitigation });
+  }
+  return rows;
+}
+
+export function countLaunchBlockingRisks(risks: RiskRow[]): number {
+  return risks.filter((r) => /launch-block/i.test(r.urgency) || /block/i.test(r.urgency)).length;
+}
+
 export function parseTaskPlan(markdown: string): ParsedTaskPlan {
   const phases = parsePhases(markdown);
   const warnings: string[] = [];
@@ -143,6 +201,9 @@ export function parseTaskPlan(markdown: string): ParsedTaskPlan {
   return {
     goal: extractGoal(markdown),
     currentPhase: extractCurrentPhase(markdown, phases),
+    depth: extractDepth(markdown),
+    assumptions: parseAssumptions(markdown),
+    risks: parseRisks(markdown),
     phases,
     errorsLogged: countErrorRows(markdown),
     warnings,
@@ -171,9 +232,11 @@ export async function summarizeStatus(projectDir: string): Promise<PlanStatus> {
   const state = await getPlanningFilesState(projectDir);
   const taskPlan = await readIfExists(state.taskPlanPath);
   const progress = await readIfExists(state.progressPath);
-  const parsed = taskPlan ? parseTaskPlan(taskPlan) : { goal: null, currentPhase: null, phases: [], errorsLogged: 0, warnings: [] };
+  const parsed = taskPlan ? parseTaskPlan(taskPlan) : { goal: null, currentPhase: null, depth: "standard" as PlanDepth, assumptions: [] as AssumptionRow[], risks: [] as RiskRow[], phases: [], errorsLogged: 0, warnings: [] };
   const counts = countsFor(parsed.phases);
   const complete = counts.total > 0 && counts.complete === counts.total;
+  const unresolvedAssumptionCount = countUnresolvedAssumptions(parsed.assumptions);
+  const launchBlockingRiskCount = countLaunchBlockingRisks(parsed.risks);
 
   const cleanProgress = stripHtmlComments(progress);
 
@@ -182,6 +245,11 @@ export async function summarizeStatus(projectDir: string): Promise<PlanStatus> {
     projectDir: state.projectDir,
     currentPhase: parsed.currentPhase,
     goal: parsed.goal,
+    depth: parsed.depth,
+    assumptions: parsed.assumptions,
+    risks: parsed.risks,
+    unresolvedAssumptionCount,
+    launchBlockingRiskCount,
     phases: parsed.phases,
     counts,
     files: {
@@ -245,6 +313,7 @@ export function formatStatusForModel(status: PlanStatus): string {
   return [
     "[planning-with-files] ACTIVE PLAN",
     `Goal: ${status.goal ?? "Unknown"}`,
+    `Depth: ${status.depth}`,
     `Current phase: ${status.currentPhase ?? "Unknown"}`,
     `Progress: ${status.counts.complete}/${status.counts.total} complete, ${status.counts.inProgress} in progress, ${status.counts.pending} pending.`,
     "",

@@ -44,12 +44,31 @@ export interface PhaseInfo {
   raw: string;
 }
 
+export type PlanDepth = "lightweight" | "standard" | "deep";
+
 export interface ParsedTaskPlan {
   goal: string | null;
   currentPhase: string | null;
+  depth: PlanDepth;
+  assumptions: AssumptionRow[];
   phases: PhaseInfo[];
   errorsLogged: number;
   warnings: string[];
+}
+
+export interface AssumptionRow {
+  assumption: string;
+  category: string;
+  impact: string;
+  risk: string;
+  action: string;
+}
+
+export interface RiskRow {
+  risk: string;
+  type: string;
+  urgency: string;
+  mitigation: string;
 }
 
 export interface PlanStatus {
@@ -57,6 +76,11 @@ export interface PlanStatus {
   projectDir: string;
   currentPhase: string | null;
   goal: string | null;
+  depth: PlanDepth;
+  assumptions: AssumptionRow[];
+  risks: RiskRow[];
+  unresolvedAssumptionCount: number;
+  launchBlockingRiskCount: number;
   phases: PhaseInfo[];
   counts: {
     total: number;
@@ -108,6 +132,7 @@ export interface ExtensionState {
   projectDir: string | null;
   reminders: ReminderState;
   lastUserIntent: "continue" | "pause" | "stop" | "unknown";
+  planDepth: PlanDepth;
 }
 
 export interface TruncatedText {

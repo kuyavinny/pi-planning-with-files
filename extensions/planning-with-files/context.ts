@@ -60,9 +60,18 @@ export function buildActivePlanContext(
   const parts = [
     "[planning-with-files] ACTIVE PLAN",
     `Goal: ${status.goal ?? "Unknown"}`,
+    `Depth: ${status.depth}`,
     `Current phase: ${status.currentPhase ?? "Unknown"}`,
     `Progress: ${status.counts.complete}/${status.counts.total} complete, ${status.counts.inProgress} in progress, ${status.counts.pending} pending.`,
   ];
+
+  if (status.unresolvedAssumptionCount > 0) {
+    parts.push(`Assumptions: ${status.unresolvedAssumptionCount} unresolved — validate before committing to implementation.`);
+  }
+
+  if (status.launchBlockingRiskCount > 0) {
+    parts.push(`Risks: ${status.launchBlockingRiskCount} launch-blocking — resolve before marking plan complete.`);
+  }
 
   if (phaseBlock) {
     parts.push("", "Current phase details:", phaseBlock);
