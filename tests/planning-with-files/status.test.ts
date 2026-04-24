@@ -94,6 +94,18 @@ describe("status parsing", () => {
     expect(phases[1]?.index).toBe(2);
   });
 
+  test("parses execution posture from phase blocks", () => {
+    const withPosture = "# Task Plan\n\n### U1: Build Parser\n- **Execution posture:** test-first\n- **Status:** in_progress\n\n### U2: Refactor\n- **Execution posture:** characterization-first\n- **Status:** pending\n";
+    const phases = parsePhases(withPosture);
+    expect(phases[0]?.executionPosture).toBe("test-first");
+    expect(phases[1]?.executionPosture).toBe("characterization-first");
+  });
+
+  test("defaults execution posture to default when absent", () => {
+    const phases = parsePhases("### U1: Build\n- **Status:** pending\n");
+    expect(phases[0]?.executionPosture).toBe("default");
+  });
+
   test("U-ID phases coexist with Phase N phases", () => {
     // If both formats exist, heading parser grabs them all
     const mixed = "# Task Plan\n\n### Phase 1: Old Format\n- **Status:** complete\n\n### U2: New Format\n- **Status:** pending\n";

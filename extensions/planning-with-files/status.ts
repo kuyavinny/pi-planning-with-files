@@ -67,6 +67,17 @@ function phaseStatusFromBlock(block: string, fallbackTitle: string): PhaseStatus
   return normalizeStatus(value.replace(/[*`|]/g, ""));
 }
 
+function extractExecutionPosture(block: string): string {
+  const line = block.split(/\r?\n/).find((l) => /\*\*Execution posture:\*\*/i.test(l) || /\bExecution posture:\b/i.test(l));
+  if (!line) return "default";
+  const value = line.split(/Execution posture:\*\*|Execution posture:/i).pop() ?? "";
+  const trimmed = value.replace(/[*`|]/g, "").trim().toLowerCase();
+  if (trimmed.includes("test-first") || trimmed.includes("test first")) return "test-first";
+  if (trimmed.includes("characterization-first") || trimmed.includes("characterization first")) return "characterization-first";
+  if (trimmed) return trimmed;
+  return "default";
+}
+
 function parseHeadingPhases(markdown: string): PhaseInfo[] {
   const lines = markdown.split(/\r?\n/);
   const starts: Array<{ index: number; line: string }> = [];
@@ -85,7 +96,7 @@ function parseHeadingPhases(markdown: string): PhaseInfo[] {
     // Extract U-ID index from title like "U1: Phase Name"
     const uidMatch = title.match(/^U(\d+):/i);
     const phaseIndex = uidMatch ? parseInt(uidMatch[1]!, 10) : idx + 1;
-    return { index: phaseIndex, title, status: phaseStatusFromBlock(raw, start.line), raw };
+    return { index: phaseIndex, title, status: phaseStatusFromBlock(raw, start.line), executionPosture: extractExecutionPosture(raw), raw };
   });
 }
 
@@ -102,7 +113,7 @@ function parseTablePhases(markdown: string): PhaseInfo[] {
     if (/^phase$/i.test(phase) || /^-+$/.test(phase) || /^-+$/.test(status)) continue;
     const normalized = normalizeStatus(status);
     if (normalized === "unknown") continue;
-    phases.push({ index: phases.length + 1, title: phase, status: normalized, raw: line });
+    phases.push({ index: phases.length + 1, title: phase, status: normalized, executionPosture: "default", raw: line });
   }
   return phases;
 }

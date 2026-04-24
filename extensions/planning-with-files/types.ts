@@ -41,6 +41,7 @@ export interface PhaseInfo {
   index: number;
   title: string;
   status: PhaseStatus;
+  executionPosture: string;
   raw: string;
 }
 

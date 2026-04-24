@@ -89,6 +89,7 @@ Use U-ID headings for stable IDs that survive reordering:
 ### U1: Discovery
 - **Goal:** Understand the problem space
 - **Dependencies:** None
+- **Execution posture:** default (or test-first, characterization-first)
 - **Test scenarios:** List files, verify understanding
 - [ ] Task item 1
 - [ ] Task item 2
@@ -96,6 +97,24 @@ Use U-ID headings for stable IDs that survive reordering:
 ```
 
 Legacy `### Phase N:` format also works for backward compatibility.
+
+### Execution Posture
+
+Each phase can specify its execution posture:
+- **default** — implement pragmatically, test as you go
+- **test-first** — write the failing test before implementing for this phase
+- **characterization-first** — capture existing behavior before changing it
+
+### Test Scenario Categories
+
+For each phase, check whether test scenarios cover all applicable categories:
+
+| Category | When it applies | How to derive if missing |
+|----------|----------------|------------------------|
+| **Happy path** | Always for feature-bearing phases | Read the goal for core input/output pairs |
+| **Edge cases** | When the phase has boundaries (inputs, state, concurrency) | Identify boundary values, empty inputs |
+| **Error/failure paths** | When the phase has failure modes (validation, external calls) | Enumerate invalid inputs, permission denials |
+| **Integration** | When the phase crosses layers (callbacks, middleware, multi-service) | Exercise the cross-layer chain without mocks |
 
 ## Critical Rules
 

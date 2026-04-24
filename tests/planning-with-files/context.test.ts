@@ -53,6 +53,20 @@ describe("context builders", () => {
     expect(text).toContain("Read findings.md");
   });
 
+  test("includes execution posture when non-default", () => {
+    const testFirstStatus: PlanStatus = {
+      ...status,
+      phases: [{ ...status.phases[0]!, executionPosture: "test-first" }],
+    };
+    const text = buildActivePlanContext(testFirstStatus, reminders);
+    expect(text).toContain("Execution posture for current phase: test-first");
+  });
+
+  test("omits execution posture when default", () => {
+    const text = buildActivePlanContext(status, reminders);
+    expect(text).not.toContain("Execution posture");
+  });
+
   test("truncates long phase details", () => {
     const longStatus = {
       ...status,
