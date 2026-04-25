@@ -1,8 +1,10 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import { watch } from "node:fs";
 import { buildActivePlanContext } from "./context.js";
 import { registerPlanningCommands } from "./commands.js";
 import { summarizeStatus } from "./status.js";
 import { isFindingsFile, isMutationTool, isPlanningFile, isProgressFile, isReadLikeTool, isUserStopOverride, signatureForToolError } from "./security.js";
+import { getPlanningPaths } from "./files.js";
 import {
   clearErrorReminder,
   clearFindingsReminder,
@@ -29,11 +31,48 @@ function pathFromInput(input: unknown): string | null {
 export default function planningWithFilesExtension(pi: ExtensionAPI): void {
   let state: ExtensionState = defaultExtensionState();
   let lastPersistedState: ExtensionState = state;
+  let currentCtx: any = null;
+  let fileWatcher: ReturnType<typeof watch> | null = null;
+  let watcherDebounce: ReturnType<typeof setTimeout> | null = null;
 
   const getState = () => state;
   const setState = (next: ExtensionState) => {
     state = next;
   };
+
+  /** Start watching task_plan.md for changes. Debounces rapid events (e.g. save). */
+  function startFileWatcher(ctx: any, projectDir: string): void {
+    stopFileWatcher();
+    currentCtx = ctx;
+    const paths = getPlanningPaths(projectDir);
+
+    try {
+      fileWatcher = watch(paths.taskPlanPath, (eventType) => {
+        if (eventType !== "change") return;
+        // Debounce: fs.watch fires multiple events per save on some platforms
+        if (watcherDebounce) clearTimeout(watcherDebounce);
+        watcherDebounce = setTimeout(async () => {
+          watcherDebounce = null;
+          if (!currentCtx) return;
+          const status = await summarizeStatus(projectDir);
+          updatePlanningStatus(currentCtx, status);
+        }, 200);
+      });
+    } catch {
+      // File may not exist yet; watcher will start on next session_start or plan init
+    }
+  }
+
+  function stopFileWatcher(): void {
+    if (watcherDebounce) {
+      clearTimeout(watcherDebounce);
+      watcherDebounce = null;
+    }
+    if (fileWatcher) {
+      fileWatcher.close();
+      fileWatcher = null;
+    }
+  }
 
   registerPlanningTools(pi);
   registerPlanningCommands(pi, getState, setState);
@@ -45,6 +84,7 @@ export default function planningWithFilesExtension(pi: ExtensionAPI): void {
     if (status.exists) {
       state = { ...state, active: true, projectDir: ctx.cwd };
       updatePlanningStatus(ctx, status);
+      startFileWatcher(ctx, ctx.cwd);
     }
   });
 
@@ -54,6 +94,10 @@ export default function planningWithFilesExtension(pi: ExtensionAPI): void {
     if (!status.exists || state.paused) return;
     state = { ...state, active: true, projectDir: ctx.cwd };
     updatePlanningStatus(ctx, status);
+    // Ensure watcher is running (file may have been created since session_start)
+    if (!fileWatcher && status.exists) {
+      startFileWatcher(ctx, ctx.cwd);
+    }
     return {
       message: {
         customType: "planning-with-files-context",
@@ -102,6 +146,10 @@ export default function planningWithFilesExtension(pi: ExtensionAPI): void {
       else state = markProgressReminder(state);
       // Update footer whenever planning files change so phase progress stays current
       updatePlanningStatus(ctx, status);
+      // Restart watcher if task_plan.md was just created
+      if (isPlanningFile(path) && !fileWatcher) {
+        startFileWatcher(ctx, ctx.cwd);
+      }
     }
 
     if (event.isError) {
@@ -126,6 +174,7 @@ export default function planningWithFilesExtension(pi: ExtensionAPI): void {
   });
 
   pi.on("session_shutdown", async () => {
+    stopFileWatcher();
     if (hasStateChanged(state, lastPersistedState)) {
       pi.appendEntry(STATE_CUSTOM_TYPE, state);
       lastPersistedState = state;
