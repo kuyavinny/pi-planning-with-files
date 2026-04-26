@@ -25,3 +25,6 @@ progress.md
 *.log
 *.tmp
 .nvimlog
+
+# Local archive for non-runtime planning/design artifacts
+archive/

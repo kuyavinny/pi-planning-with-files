@@ -26,6 +26,20 @@ For complex tasks, the workflow uses three project-root files:
 | `findings.md` | Research, discoveries, and external context | **Low** — may contain raw web/search content; never auto-injected |
 | `progress.md` | Chronological work log, tests, and files touched | Medium — used for status summaries |
 
+### Durable Artifacts
+
+For standard and deep tasks, Planning-with-Files also supports durable project records under `docs/`:
+
+| Directory | Purpose |
+|-----------|---------|
+| `docs/discovery/` | Problem framing, requirements, assumptions, optional product context |
+| `docs/specs/` | Approved design/spec decisions |
+| `docs/plans/` | Implementation plans that can be replayed or modified later |
+| `docs/reviews/` | Verification and review records |
+| `docs/learnings/` | Compounded lessons and reusable patterns |
+
+The root planning files answer "what are we doing right now?" Durable docs answer "why did we choose this, how was it built, and how can it be modified later?"
+
 ### Activation
 
 A `task_plan.md` file in the project root **activates** workflow automation. When the extension detects an existing plan, it:

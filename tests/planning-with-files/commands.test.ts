@@ -12,6 +12,23 @@ describe("planning commands", () => {
     expect(message).toContain("progress.md");
   });
 
+  test("standard kickoff asks for durable spec and implementation plan", () => {
+    const message = planningKickoffMessage("Build feature", "standard");
+    expect(message).toContain("Durable artifacts");
+    expect(message).toContain("spec and implementation plan");
+  });
+
+  test("deep kickoff asks for full durable artifact chain", () => {
+    const message = planningKickoffMessage("Redesign architecture", "deep");
+    expect(message).toContain("discovery, spec, implementation plan, review, and learnings");
+  });
+
+  test("lightweight kickoff stays low ceremony", () => {
+    const message = planningKickoffMessage("Fix typo", "lightweight");
+    expect(message).not.toContain("Durable artifacts");
+    expect(message).not.toContain("implementation plan under docs");
+  });
+
   test("registers expected commands", () => {
     const commands: Record<string, any> = {};
     let state = defaultExtensionState();
