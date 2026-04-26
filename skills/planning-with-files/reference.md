@@ -165,14 +165,36 @@ Manus operates in a continuous 7-step loop:
 
 ---
 
-## File Types Manus Creates
+## File Types Planning-with-Files Creates
+
+### Active execution files
 
 | File | Purpose | When Created | When Updated |
 |------|---------|--------------|--------------|
-| `task_plan.md` | Phase tracking, progress | Task start | After completing phases |
-| `findings.md` | Discoveries, decisions | After ANY discovery | After viewing images/PDFs |
-| `progress.md` | Session log, what's done | At breakpoints | Throughout session |
-| Code files | Implementation | Before execution | After errors |
+| `task_plan.md` | Phase tracking, progress, assumptions, risks, decisions | Task start | After completing phases and major decisions |
+| `findings.md` | Discoveries, research, external context | After discovery begins | After every 2 read/search/browser operations |
+| `progress.md` | Session log, files changed, verification results | At task start | Throughout the session |
+| Code files | Implementation | Before execution | After errors or review |
+
+### Durable artifact files
+
+For standard and deep tasks, active execution files are not enough. Use durable docs so the work can be reproduced or modified later.
+
+| Directory | Purpose | Typical Template |
+|-----------|---------|------------------|
+| `docs/discovery/` | Problem framing, requirements, assumptions, optional product context | `templates/discovery.md` |
+| `docs/specs/` | Approved design/spec decisions | `templates/spec.md` |
+| `docs/plans/` | Executable implementation plans | `templates/implementation_plan.md` |
+| `docs/reviews/` | Verification and review records | `templates/review.md` |
+| `docs/learnings/` | Compounded reusable lessons | `templates/learnings.md` |
+
+Recommended flow:
+
+```text
+start/classify -> discover -> requirements -> design/spec -> implementation plan -> execute with PwF -> verify/review -> compound learnings -> close/archive
+```
+
+`task_plan.md` should link to durable artifacts, but not duplicate them in full.
 
 ---
 

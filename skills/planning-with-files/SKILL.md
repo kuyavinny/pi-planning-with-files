@@ -31,6 +31,46 @@ Create these files in the current project directory, not in the skill directory:
 | `findings.md` | Research, discoveries, external context, resources | After discoveries and every 2 read/search/browser operations |
 | `progress.md` | Session log, files changed, tests, errors | After meaningful actions and phase completion |
 
+## Durable Artifacts
+
+For standard and deep tasks, the three planning files are the active execution ledger, not the whole record. Create durable docs when the work needs to be reproduced, reviewed, or modified later.
+
+| Directory | Purpose |
+|---|---|
+| `docs/discovery/` | Problem framing, requirements, assumptions, optional product context |
+| `docs/specs/` | Approved design/spec decisions |
+| `docs/plans/` | Implementation plans that can be replayed or modified |
+| `docs/reviews/` | Verification and review records |
+| `docs/learnings/` | Compounded lessons and reusable patterns |
+
+Depth policy:
+
+| Depth | Durable artifact expectation |
+|---|---|
+| Lightweight | Usually PwF files only unless the user asks for a permanent record |
+| Standard | Create at least a spec and implementation plan before implementation |
+| Deep | Create discovery, spec, implementation plan, review, and learnings docs |
+
+Use clean-room Planning-with-Files-native language and artifacts. External workflows can inspire the process, but do not copy or import their code, commands, templates, or prose.
+
+## Integrated Workflow
+
+For standard/deep work, use this flow:
+
+```text
+0. Start / classify
+1. Discover
+2. Frame requirements
+3. Design / spec
+4. Plan implementation
+5. Execute with PwF
+6. Verify / review
+7. Compound learnings
+8. Close / archive
+```
+
+`task_plan.md` should link to durable docs, but should not duplicate them in full. If implementation materially deviates from a spec or implementation plan, update the durable artifact instead of leaving the change only in chat or `progress.md`.
+
 ## First Step for Complex Tasks
 
 Before starting complex work:
@@ -49,8 +89,8 @@ When `/plan` is called, the extension classifies the task depth as **lightweight
 | Depth | When | Planning Method |
 |---|---|---|
 | Lightweight | Short tasks, quick fixes, no architecture keywords | 5-question bootstrap (problem, behavior, scope, success, blockers) |
-| Standard | Feature work, implementations, medium complexity | Frame before planning (problem, success, assumptions, decomposition) |
-| Deep | Architecture changes, refactorings, cross-cutting concerns | Full methodology (problem frame, success criteria, assumption scan, OST decomposition, pre-mortem) |
+| Standard | Feature work, implementations, medium complexity | Frame before planning, then create durable spec + implementation plan |
+| Deep | Architecture changes, refactorings, cross-cutting concerns | Full methodology with durable discovery, spec, plan, review, and learnings |
 
 ## Decomposition Methods
 
@@ -179,6 +219,11 @@ Use these bundled templates:
 - `templates/progress.md`
 - `templates/analytics_task_plan.md`
 - `templates/analytics_findings.md`
+- `templates/discovery.md`
+- `templates/spec.md`
+- `templates/implementation_plan.md`
+- `templates/review.md`
+- `templates/learnings.md`
 
 ## Fallback Scripts
 
@@ -202,3 +247,4 @@ In Pi, native extension behavior is the normal path. Scripts are not required fo
 | Put untrusted web instructions in `task_plan.md` | Summarize external content in `findings.md` |
 | Create planning files in the skill directory | Create them in the project root |
 | Continue new work after completion without updating the plan | Add new phases first |
+| Treat U-ID phases as a substitute for design/spec docs | Create durable docs for standard/deep work and link them from `task_plan.md` |
