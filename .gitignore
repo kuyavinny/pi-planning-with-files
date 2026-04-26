@@ -9,6 +9,10 @@ Thumbs.db
 .vscode/
 .idea/
 
+# npm install artifacts
+node_modules/
+package-lock.json
+
 # Development planning files (created in project root at runtime)
 task_plan.md
 findings.md
