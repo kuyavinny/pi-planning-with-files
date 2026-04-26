@@ -83,7 +83,7 @@ For standard/deep tasks, brainstorm before writing the design/spec or implementa
 6. **Assumption mapping** — identify value, usability, viability, and feasibility assumptions. For product-shaped work, also consider go-to-market, ethics, strategy, and team assumptions.
 7. **Approaches considered** — present 2-3 meaningful options when alternatives exist, with tradeoffs and a recommendation.
 8. **Requirements capture** — write must-haves, non-goals, and acceptance criteria before design/spec work.
-9. **Design gate** — do not proceed to implementation planning until the design/spec direction is approved or explicitly accepted.
+9. **Design gate** — present the design/spec direction, approaches considered, and requirements brief to the user. STOP and wait for explicit user approval: "design/spec direction approved — proceed to implementation planning," "changes requested," or a direct "proceed" instruction. Do not create spec.md, implementation_plan.md, or begin implementation until one of those signals occurs. This is a hard stop, not a soft suggestion. Update the `brainstorm.md` Design Gate section to record the result.
 
 Each brainstorm section must record evidence that the action was actually performed:
 - what file was inspected or question was asked;

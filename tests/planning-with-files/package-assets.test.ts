@@ -57,6 +57,20 @@ describe("package assets", () => {
     expect(skill).toContain("Each brainstorm section must record evidence that the action was actually performed");
   });
 
+  test("Pi skill design gate is a hard stop with explicit user approval", () => {
+    const skill = readFileSync(resolve(root, "skills/planning-with-files/SKILL.md"), "utf8");
+    expect(skill).toContain("STOP and wait for explicit user approval");
+    expect(skill).toContain("Do not create spec.md, implementation_plan.md, or begin implementation until one of those signals occurs");
+    expect(skill).toContain("This is a hard stop, not a soft suggestion");
+  });
+
+  test("brainstorm template has enforceable design gate section", () => {
+    const brainstorm = readFileSync(resolve(root, "skills/planning-with-files/templates/brainstorm.md"), "utf8");
+    expect(brainstorm).toContain("THIS IS A HARD STOP");
+    expect(brainstorm).toContain("Do not mark this box yourself");
+    expect(brainstorm).toContain("The user must signal their choice");
+  });
+
   test("Pi skill contains review protocol with gates and lenses", () => {
     const skill = readFileSync(resolve(root, "skills/planning-with-files/SKILL.md"), "utf8");
     expect(skill).toContain("## Review Protocol");

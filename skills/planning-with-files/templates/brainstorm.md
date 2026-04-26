@@ -54,8 +54,20 @@
 - 
 
 ## Design Gate
-- Recommended next artifact: spec / implementation plan / no further planning needed
-- Approval status: pending / approved / changes requested
+
+<!-- THIS IS A HARD STOP. Do not proceed to implementation planning until the user explicitly responds. -->
+
+**Proposed direction summary:**
+[One paragraph summarizing the chosen approach, key tradeoffs, and why this is the recommended path]
+
+**Waiting for user signal:**
+- [ ] **approved** — user explicitly approved; proceed to spec/implementation plan
+- [ ] **changes requested** — user requested modifications; revisit relevant sections above
+- [ ] **proceed anyway** — user explicitly told you to continue without formal approval
+
+**Do not mark this box yourself. The user must signal their choice.**
+
+**Recommended next artifact:** spec / implementation plan / no further planning needed
 
 ## Links
 - Active plan: `task_plan.md`
