@@ -57,6 +57,46 @@ describe("package assets", () => {
     expect(skill).toContain("Each brainstorm section must record evidence that the action was actually performed");
   });
 
+  test("Pi skill contains review protocol with gates and lenses", () => {
+    const skill = readFileSync(resolve(root, "skills/planning-with-files/SKILL.md"), "utf8");
+    expect(skill).toContain("## Review Protocol");
+    expect(skill).toContain("### Review Gates");
+    expect(skill).toContain("Self-Check");
+    expect(skill).toContain("Plan Sanity");
+    expect(skill).toContain("Checkpoint");
+    expect(skill).toContain("Final Review");
+    expect(skill).toContain("### Conditional Review Lenses");
+    expect(skill).toContain("Coherence Lens");
+    expect(skill).toContain("Buildability Lens");
+    expect(skill).toContain("Scope Lens");
+    expect(skill).toContain("Risk Lens");
+    expect(skill).toContain("Completeness Lens");
+  });
+
+  test("implementation plan template contains checkpoint review", () => {
+    const plan = readFileSync(resolve(root, "skills/planning-with-files/templates/implementation_plan.md"), "utf8");
+    expect(plan).toContain("## Checkpoint Review");
+    expect(plan).toContain("U-ID");
+    expect(plan).toContain("Planned");
+    expect(plan).toContain("Actual");
+    expect(plan).toContain("Deviation");
+  });
+
+  test("review template is gate-aware with all four gates", () => {
+    const review = readFileSync(resolve(root, "skills/planning-with-files/templates/review.md"), "utf8");
+    expect(review).toContain("Review Gate Used");
+    expect(review).toContain("## Self-Check");
+    expect(review).toContain("## Plan Sanity");
+    expect(review).toContain("## Checkpoint Review");
+    expect(review).toContain("## Final Review");
+    expect(review).toContain("## Conditional Lenses Applied");
+    expect(review).toContain("Coherence Lens");
+    expect(review).toContain("Buildability Lens");
+    expect(review).toContain("Scope Lens");
+    expect(review).toContain("Risk Lens");
+    expect(review).toContain("Completeness Lens");
+  });
+
   test("implementation plan template contains execution protocol guidance", () => {
     const plan = readFileSync(resolve(root, "skills/planning-with-files/templates/implementation_plan.md"), "utf8");
     expect(plan).toContain("PwF Execution Protocol");

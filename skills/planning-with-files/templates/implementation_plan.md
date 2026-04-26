@@ -75,6 +75,16 @@ When escalation is triggered for a unit, use the full loop:
 
 If the implementation deviates from the plan, stop and update this implementation plan or the linked spec before continuing.
 
+## Checkpoint Review
+
+After each U-ID unit completes, run a quick checkpoint against this plan:
+- What was planned vs what was implemented?
+- Any deviations or blockers?
+- Any new risks that emerged?
+- Did the unit's verification pass?
+
+Record checkpoint findings in `progress.md` before proceeding to the next unit.
+
 ## Deviation Log
 
 | U-ID | Planned | Actual | Reason | Plan/Spec Updated |
