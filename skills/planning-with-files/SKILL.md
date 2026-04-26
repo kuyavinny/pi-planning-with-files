@@ -172,6 +172,39 @@ For each phase, check whether test scenarios cover all applicable categories:
 | **Error/failure paths** | When the phase has failure modes (validation, external calls) | Enumerate invalid inputs, permission denials |
 | **Integration** | When the phase crosses layers (callbacks, middleware, multi-service) | Exercise the cross-layer chain without mocks |
 
+## Implementation Execution Protocol
+
+After a durable implementation plan exists, execute it as a controlled PwF loop. Use a **compact loop** by default and escalate to the **full loop** when risk or complexity is higher.
+
+### Compact Loop (default for most units)
+
+For each U-ID unit after a durable implementation plan exists:
+
+1. **Re-anchor** — re-read the active phase, linked implementation-plan section, relevant spec requirement, and recent `progress.md`.
+2. **Execute surgically** — touch only files required by the unit; defer adjacent refactoring unless the plan says otherwise.
+3. **Verify** — run the narrowest relevant check first, then broader tests when shared behavior changed.
+4. **Record** — update `progress.md` and `task_plan.md` phase status; log deviations if reality differs from plan.
+
+### Full Loop (use when any trigger is present)
+
+When the current unit involves any of:
+- prior errors,
+- cross-file or cross-module changes,
+- security or trust boundary changes,
+- user explicitly asks for deep/rigorous execution,
+
+run the full loop instead:
+
+1. **Re-anchor**
+2. **Select one unit** — execute one phase or subtask at a time; split oversized units before coding.
+3. **Preflight** — confirm planned files, assumptions, risks, and verification commands are still valid.
+4. **Execute surgically**
+5. **Verify**
+6. **Record**
+7. **Gate next step** — move on only when verification passes or the deviation/failure is explicitly recorded and accepted.
+
+If implementation materially deviates from the plan, stop and update the durable implementation plan or spec before continuing. Chat alone is not a durable deviation record.
+
 ## Critical Rules
 
 ### 1. Create Plan First

@@ -43,4 +43,18 @@ describe("package assets", () => {
     expect(skill.toLowerCase()).not.toContain("hooks are not currently supported");
     expect(skill.toLowerCase()).not.toContain("hooks unsupported");
   });
+
+  test("Pi skill contains implementation execution protocol", () => {
+    const skill = readFileSync(resolve(root, "skills/planning-with-files/SKILL.md"), "utf8");
+    expect(skill).toContain("Implementation Execution Protocol");
+    expect(skill).toContain("Compact Loop");
+    expect(skill).toContain("Full Loop");
+  });
+
+  test("implementation plan template contains execution protocol guidance", () => {
+    const plan = readFileSync(resolve(root, "skills/planning-with-files/templates/implementation_plan.md"), "utf8");
+    expect(plan).toContain("PwF Execution Protocol");
+    expect(plan).toContain("Escalation Checklist");
+    expect(plan).toContain("Deviation Log");
+  });
 });
