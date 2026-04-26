@@ -23,22 +23,35 @@ const status: PlanStatus = {
 };
 
 describe("planning UI", () => {
-  test("sets footer status when UI is available", () => {
+  test("sets a right-aligned widget with progress data when UI is available", () => {
     const calls: any[] = [];
     const ctx = {
       hasUI: true,
       ui: {
         theme: { fg: (_name: string, text: string) => text },
-        setStatus: (...args: any[]) => calls.push(args),
+        setWidget: (...args: any[]) => calls.push(args),
       },
     } as any;
+
     updatePlanningStatus(ctx, status);
-    expect(calls).toEqual([["PwF", "📋 ❖ Phase 1 ➤ 2/5"]]);
+
+    expect(calls).toHaveLength(1);
+    const [key, factory] = calls[0] as [string, any];
+    expect(key).toBe("PwF");
+
+    const widget = factory({} as any, ctx.ui.theme);
+    const lines = widget.render(40);
+    expect(lines[0]?.trimStart()).toBe("📋 PwF • Phase 1");
+    expect(lines[1]?.trimStart()).toMatch(/^[█░]+$/);
+    expect(lines[2]).toContain("Goal: Goal");
+    expect(lines[2]).toContain("40%");
+    expect(lines[2]).toContain("A:0");
+    expect(lines[2]).toContain("R:0");
   });
 
   test("clears status when no plan exists", () => {
     const calls: any[] = [];
-    const ctx = { hasUI: true, ui: { setStatus: (...args: any[]) => calls.push(args) } } as any;
+    const ctx = { hasUI: true, ui: { setWidget: (...args: any[]) => calls.push(args) } } as any;
     clearPlanningStatus(ctx);
     updatePlanningStatus(ctx, null);
     expect(calls).toEqual([

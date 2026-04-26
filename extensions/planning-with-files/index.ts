@@ -32,7 +32,7 @@ export default function planningWithFilesExtension(pi: ExtensionAPI): void {
   let state: ExtensionState = defaultExtensionState();
   let lastPersistedState: ExtensionState = state;
   let currentCtx: any = null;
-  let fileWatcher: ReturnType<typeof watch> | null = null;
+  let fileWatchers: ReturnType<typeof watch>[] = [];
   let watcherDebounce: ReturnType<typeof setTimeout> | null = null;
 
   const getState = () => state;
@@ -40,26 +40,31 @@ export default function planningWithFilesExtension(pi: ExtensionAPI): void {
     state = next;
   };
 
-  /** Start watching task_plan.md for changes. Debounces rapid events (e.g. save). */
+  /** Start watching planning files for changes. Debounces rapid events (e.g. save). */
   function startFileWatcher(ctx: any, projectDir: string): void {
     stopFileWatcher();
     currentCtx = ctx;
     const paths = getPlanningPaths(projectDir);
 
     try {
-      fileWatcher = watch(paths.taskPlanPath, (eventType) => {
-        if (eventType !== "change") return;
-        // Debounce: fs.watch fires multiple events per save on some platforms
-        if (watcherDebounce) clearTimeout(watcherDebounce);
-        watcherDebounce = setTimeout(async () => {
-          watcherDebounce = null;
-          if (!currentCtx) return;
-          const status = await summarizeStatus(projectDir);
-          updatePlanningStatus(currentCtx, status);
-        }, 200);
-      });
+      for (const path of [paths.taskPlanPath, paths.progressPath, paths.findingsPath]) {
+        fileWatchers.push(
+          watch(path, (eventType) => {
+            if (eventType !== "change") return;
+            // Debounce: fs.watch fires multiple events per save on some platforms
+            if (watcherDebounce) clearTimeout(watcherDebounce);
+            watcherDebounce = setTimeout(async () => {
+              watcherDebounce = null;
+              if (!currentCtx) return;
+              const status = await summarizeStatus(projectDir);
+              updatePlanningStatus(currentCtx, status);
+            }, 200);
+          }),
+        );
+      }
     } catch {
-      // File may not exist yet; watcher will start on next session_start or plan init
+      stopFileWatcher();
+      // Files may not exist yet; watcher will start on next session_start or plan init
     }
   }
 
@@ -68,10 +73,8 @@ export default function planningWithFilesExtension(pi: ExtensionAPI): void {
       clearTimeout(watcherDebounce);
       watcherDebounce = null;
     }
-    if (fileWatcher) {
-      fileWatcher.close();
-      fileWatcher = null;
-    }
+    for (const watcher of fileWatchers) watcher.close();
+    fileWatchers = [];
   }
 
   registerPlanningTools(pi);
@@ -95,7 +98,7 @@ export default function planningWithFilesExtension(pi: ExtensionAPI): void {
     state = { ...state, active: true, projectDir: ctx.cwd };
     updatePlanningStatus(ctx, status);
     // Ensure watcher is running (file may have been created since session_start)
-    if (!fileWatcher && status.exists) {
+    if (!fileWatchers.length && status.exists) {
       startFileWatcher(ctx, ctx.cwd);
     }
     return {
@@ -144,10 +147,10 @@ export default function planningWithFilesExtension(pi: ExtensionAPI): void {
       else if (isFindingsFile(path)) state = clearFindingsReminder(state);
       else if (isPlanningFile(path)) state = clearErrorReminder(state);
       else state = markProgressReminder(state);
-      // Update footer whenever planning files change so phase progress stays current
+      // Update widget whenever planning files change so phase progress stays current
       updatePlanningStatus(ctx, status);
       // Restart watcher if task_plan.md was just created
-      if (isPlanningFile(path) && !fileWatcher) {
+      if (isPlanningFile(path) && !fileWatchers.length) {
         startFileWatcher(ctx, ctx.cwd);
       }
     }
