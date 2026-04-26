@@ -12,15 +12,19 @@ describe("planning commands", () => {
     expect(message).toContain("progress.md");
   });
 
-  test("standard kickoff asks for durable spec and implementation plan", () => {
+  test("standard kickoff asks for brainstorming before durable spec and implementation plan", () => {
     const message = planningKickoffMessage("Build feature", "standard");
+    expect(message).toContain("Brainstorming protocol");
+    expect(message).toContain("pressure-test the problem");
     expect(message).toContain("Durable artifacts");
     expect(message).toContain("spec and implementation plan");
   });
 
-  test("deep kickoff asks for full durable artifact chain", () => {
+  test("deep kickoff asks for brainstorming and full durable artifact chain", () => {
     const message = planningKickoffMessage("Redesign architecture", "deep");
-    expect(message).toContain("discovery, spec, implementation plan, review, and learnings");
+    expect(message).toContain("Brainstorming protocol");
+    expect(message).toContain("map assumptions");
+    expect(message).toContain("brainstorm/discovery, spec, implementation plan, review, and learnings");
   });
 
   test("lightweight kickoff stays low ceremony", () => {

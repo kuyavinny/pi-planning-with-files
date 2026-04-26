@@ -61,15 +61,17 @@ export function planningKickoffMessage(task: string, depth?: PlanDepth): string 
     lines.push("3. Assumptions: Scan for Value, Usability, Viability, Feasibility assumptions. Identify which are high-impact and high-risk.");
     lines.push("4. Decomposition: Use Opportunity-Solution Tree — identify desired outcomes, then opportunities (customer needs), then solutions, then experiments. Each solution becomes a phase. Validation phases come before implementation phases.");
     lines.push("5. Risk Analysis: Classify risks as Tiger (real, must act), Paper Tiger (overblown), or Elephant (unspoken, investigate). Mark launch-blocking risks.");
-    lines.push("6. Durable artifacts: create or update discovery, spec, implementation plan, review, and learnings docs under docs/ as the work progresses.");
-    lines.push("7. Research: If this plan depends on facts that change faster than training data (current APIs, library versions, pricing), search the web before finalizing the plan.");
+    lines.push("6. Brainstorming protocol: scan context, ask one question at a time, pressure-test the problem, compare approaches, map assumptions, and capture requirements before design/spec.");
+    lines.push("7. Durable artifacts: create or update brainstorm/discovery, spec, implementation plan, review, and learnings docs under docs/ as the work progresses.");
+    lines.push("8. Research: If this plan depends on facts that change faster than training data (current APIs, library versions, pricing), search the web before finalizing the plan.");
   } else {
     lines.push("Depth: standard — frame before planning:");
     lines.push("1. Problem: What needs to change and why?");
     lines.push("2. Success: How will you verify it's done?");
     lines.push("3. Assumptions: What are you assuming that could be wrong?");
     lines.push("4. Decomposition: Break into phases that validate assumptions before committing to implementation.");
-    lines.push("5. Durable artifacts: create or update a spec and implementation plan under docs/ before implementation.");
+    lines.push("5. Brainstorming protocol: scan context, ask focused questions, pressure-test the problem, compare approaches, map assumptions, and capture requirements before design/spec.");
+    lines.push("6. Durable artifacts: create or update a brainstorm brief when useful, then a spec and implementation plan under docs/ before implementation.");
   }
 
   if (resolvedDepth !== "lightweight") {
