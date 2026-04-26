@@ -77,13 +77,18 @@ For standard/deep tasks, brainstorm before writing the design/spec or implementa
 
 1. **Context scan** — inspect relevant project files, docs, prior plans, and constraints before asking substantive questions.
 2. **Scope classification** — classify depth and work type; decide whether this is a small fix, feature, product-shaped task, architecture change, or research task.
-3. **Clarifying dialogue** — ask one question at a time when the answer changes scope, behavior, success criteria, or risk. Prefer concise multiple-choice options when useful.
+3. **Clarifying dialogue** — ask one question at a time when the answer changes scope, behavior, success criteria, or risk. Prefer concise multiple-choice options when useful. The design gate cannot proceed until at least one clarifying question is asked and answered.
 4. **Problem pressure test** — challenge whether this is the right problem, what outcome matters, what happens if nothing changes, and whether a simpler or higher-leverage framing exists.
 5. **Multi-perspective review** — consider user/product value, design/usability, engineering/feasibility, and business/viability when relevant.
 6. **Assumption mapping** — identify value, usability, viability, and feasibility assumptions. For product-shaped work, also consider go-to-market, ethics, strategy, and team assumptions.
 7. **Approaches considered** — present 2-3 meaningful options when alternatives exist, with tradeoffs and a recommendation.
 8. **Requirements capture** — write must-haves, non-goals, and acceptance criteria before design/spec work.
 9. **Design gate** — do not proceed to implementation planning until the design/spec direction is approved or explicitly accepted.
+
+Each brainstorm section must record evidence that the action was actually performed:
+- what file was inspected or question was asked;
+- what result was found;
+- what impact it had on the spec or recommendation.
 
 Use `templates/brainstorm.md` when brainstorming produces durable decisions worth preserving. Keep lightweight tasks low ceremony: if the fix is obvious and low-risk, a short problem/success/blockers note in `task_plan.md` is enough.
 

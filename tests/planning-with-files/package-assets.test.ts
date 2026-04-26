@@ -51,6 +51,12 @@ describe("package assets", () => {
     expect(skill).toContain("Full Loop");
   });
 
+  test("Pi skill requires clarifying dialogue before design gate", () => {
+    const skill = readFileSync(resolve(root, "skills/planning-with-files/SKILL.md"), "utf8");
+    expect(skill).toContain("design gate cannot proceed until at least one clarifying question");
+    expect(skill).toContain("Each brainstorm section must record evidence that the action was actually performed");
+  });
+
   test("implementation plan template contains execution protocol guidance", () => {
     const plan = readFileSync(resolve(root, "skills/planning-with-files/templates/implementation_plan.md"), "utf8");
     expect(plan).toContain("PwF Execution Protocol");
