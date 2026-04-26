@@ -23,12 +23,12 @@ const status: PlanStatus = {
 };
 
 describe("planning UI", () => {
-  test("sets a right-aligned widget with progress data when UI is available", () => {
+  test("sets a single-line widget with concise goal and progress bar when UI is available", () => {
     const calls: any[] = [];
     const ctx = {
       hasUI: true,
       ui: {
-        theme: { fg: (_name: string, text: string) => text },
+        theme: { fg: (name: string, text: string) => `<${name}>${text}</${name}>` },
         setWidget: (...args: any[]) => calls.push(args),
       },
     } as any;
@@ -40,13 +40,30 @@ describe("planning UI", () => {
     expect(key).toBe("PwF");
 
     const widget = factory({} as any, ctx.ui.theme);
-    const lines = widget.render(40);
-    expect(lines[0]?.trimStart()).toBe("📋 PwF • Phase 1");
-    expect(lines[1]?.trimStart()).toMatch(/^[█░]+$/);
-    expect(lines[2]).toContain("Goal: Goal");
-    expect(lines[2]).toContain("40%");
-    expect(lines[2]).toContain("A:0");
-    expect(lines[2]).toContain("R:0");
+    const lines = widget.render(80);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toContain("📋 ❖ Goal:");
+    expect(lines[0]).toContain("Goal");
+    expect(lines[0]).not.toContain("A:");
+    expect(lines[0]).not.toContain("R:");
+    expect(lines[0]).not.toContain("%");
+    expect(lines[0]).toContain("<error>");
+    expect(lines[0]).toContain("█");
+    expect(lines[0]).toContain("░");
+  });
+
+  test("uses warning and success colors at the 50 percent boundary", () => {
+    const calls: any[] = [];
+    const theme = { fg: (name: string, text: string) => `<${name}>${text}</${name}>` };
+    const ctx = { hasUI: true, ui: { theme, setWidget: (...args: any[]) => calls.push(args) } } as any;
+
+    updatePlanningStatus(ctx, { ...status, counts: { ...status.counts, complete: 2, total: 4 } });
+    const warningWidget = (calls.pop() as any[])[1]({} as any, theme);
+    expect(warningWidget.render(80)[0]).toContain("<warning>");
+
+    updatePlanningStatus(ctx, { ...status, counts: { ...status.counts, complete: 3, total: 4 } });
+    const successWidget = (calls.pop() as any[])[1]({} as any, theme);
+    expect(successWidget.render(80)[0]).toContain("<success>");
   });
 
   test("clears status when no plan exists", () => {
