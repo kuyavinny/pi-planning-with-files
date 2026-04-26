@@ -2,6 +2,10 @@ import { describe, expect, test } from "bun:test";
 import { clearPlanningStatus, updatePlanningStatus } from "../../extensions/planning-with-files/ui.js";
 import type { PlanStatus } from "../../extensions/planning-with-files/types.js";
 
+function stripAnsi(text: string): string {
+  return text.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
 const status: PlanStatus = {
   exists: true,
   projectDir: "repo",
@@ -23,12 +27,12 @@ const status: PlanStatus = {
 };
 
 describe("planning UI", () => {
-  test("sets a single-line widget with concise goal and progress bar when UI is available", () => {
+  test("sets a single-line right-aligned widget with concise goal and progress bar when UI is available", () => {
     const calls: any[] = [];
     const ctx = {
       hasUI: true,
       ui: {
-        theme: { fg: (name: string, text: string) => `<${name}>${text}</${name}>` },
+        theme: { fg: (_name: string, text: string) => text },
         setWidget: (...args: any[]) => calls.push(args),
       },
     } as any;
@@ -40,16 +44,10 @@ describe("planning UI", () => {
     expect(key).toBe("PwF");
 
     const widget = factory({} as any, ctx.ui.theme);
-    const lines = widget.render(80);
-    expect(lines).toHaveLength(1);
-    expect(lines[0]).toContain("📋 ❖ Goal:");
-    expect(lines[0]).toContain("Goal");
-    expect(lines[0]).not.toContain("A:");
-    expect(lines[0]).not.toContain("R:");
-    expect(lines[0]).not.toContain("%");
-    expect(lines[0]).toContain("<error>");
-    expect(lines[0]).toContain("█");
-    expect(lines[0]).toContain("░");
+    const line = stripAnsi(widget.render(80)[0] ?? "");
+    expect(line.length).toBe(80);
+    expect(line.trimStart()).toBe("📋 ❖ Goal: Goal ➤ ███████░░░░░░░░░░░");
+    expect(line.startsWith(" ")).toBe(true);
   });
 
   test("uses warning and success colors at the 50 percent boundary", () => {
@@ -59,11 +57,21 @@ describe("planning UI", () => {
 
     updatePlanningStatus(ctx, { ...status, counts: { ...status.counts, complete: 2, total: 4 } });
     const warningWidget = (calls.pop() as any[])[1]({} as any, theme);
-    expect(warningWidget.render(80)[0]).toContain("<warning>");
+    expect(stripAnsi(warningWidget.render(80)[0] ?? "")).toContain("<warning>");
 
     updatePlanningStatus(ctx, { ...status, counts: { ...status.counts, complete: 3, total: 4 } });
     const successWidget = (calls.pop() as any[])[1]({} as any, theme);
-    expect(successWidget.render(80)[0]).toContain("<success>");
+    expect(stripAnsi(successWidget.render(80)[0] ?? "")).toContain("<success>");
+  });
+
+  test("treats a complete plan as fully green", () => {
+    const calls: any[] = [];
+    const theme = { fg: (name: string, text: string) => `<${name}>${text}</${name}>` };
+    const ctx = { hasUI: true, ui: { theme, setWidget: (...args: any[]) => calls.push(args) } } as any;
+
+    updatePlanningStatus(ctx, { ...status, complete: true, counts: { ...status.counts, complete: 5, total: 5 } });
+    const widget = (calls.pop() as any[])[1]({} as any, theme);
+    expect(stripAnsi(widget.render(80)[0] ?? "")).toContain("<success>");
   });
 
   test("clears status when no plan exists", () => {

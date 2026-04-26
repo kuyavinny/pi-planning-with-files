@@ -13,12 +13,21 @@ function truncate(text: string, max: number): string {
   return `${text.slice(0, Math.max(0, max - 1))}…`;
 }
 
-function progressBar(complete: number, total: number, segments: number): { bar: string; color: "error" | "warning" | "success" } {
+function barStyle(complete: number, total: number): "error" | "warning" | "success" {
+  if (total > 0 && complete >= total) return "success";
+  const ratio = complete / Math.max(1, total);
+  return ratio < 0.5 ? "error" : ratio === 0.5 ? "warning" : "success";
+}
+
+function progressBar(complete: number, total: number, segments: number, theme: { fg(name: string, text: string): string }): string {
   const safeTotal = Math.max(1, total);
   const ratio = complete / safeTotal;
   const filled = Math.max(0, Math.min(segments, Math.round(ratio * segments)));
-  const color = ratio < 0.5 ? "error" : ratio === 0.5 ? "warning" : "success";
-  return { bar: `${"█".repeat(filled)}${"░".repeat(segments - filled)}`, color };
+  const empty = segments - filled;
+  const color = barStyle(complete, total);
+  const filledText = theme.fg(color, "█".repeat(filled));
+  const emptyText = empty > 0 ? `\x1b[2m${theme.fg(color, "░".repeat(empty))}\x1b[22m` : "";
+  return `${filledText}${emptyText}`;
 }
 
 function widgetLine(status: PlanStatus, width: number, theme: { fg(name: string, text: string): string }): string {
@@ -30,8 +39,9 @@ function widgetLine(status: PlanStatus, width: number, theme: { fg(name: string,
   const barWidth = Math.max(minimumBar, Math.min(18, available - 1));
   const goalWidth = Math.max(0, available - barWidth);
   const finalGoal = truncate(goal, goalWidth);
-  const { bar, color } = progressBar(status.counts.complete, status.counts.total, barWidth);
-  return theme.fg("accent", `${prefix}${finalGoal}${infix}`) + theme.fg(color, bar);
+  const visible = `${prefix}${finalGoal}${infix}${"█".repeat(barWidth)}`;
+  const pad = Math.max(0, width - visible.length);
+  return `${" ".repeat(pad)}${theme.fg("accent", `${prefix}${finalGoal}${infix}`)}${progressBar(status.counts.complete, status.counts.total, barWidth, theme)}`;
 }
 
 export function updatePlanningStatus(ctx: ExtensionContext, status: PlanStatus | null): void {
