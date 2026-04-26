@@ -64,7 +64,7 @@ For standard/deep work, use this flow:
 3. Design / spec
 4. Plan implementation
 5. Execute with PwF
-6. Verify / review
+6. Verify / review — apply the appropriate review gate (see Review Protocol)
 7. Compound learnings
 8. Close / archive
 ```
@@ -209,6 +209,35 @@ run the full loop instead:
 7. **Gate next step** — move on only when verification passes or the deviation/failure is explicitly recorded and accepted.
 
 If implementation materially deviates from the plan, stop and update the durable implementation plan or spec before continuing. Chat alone is not a durable deviation record.
+
+## Review Protocol
+
+Review is not a single end-of-task checklist. It is a lightweight gate protocol that runs at four moments during a PwF task lifecycle. Each gate has a different purpose and checklist.
+
+### Review Gates
+
+| Gate | When | Focus | Natural Checkpoint |
+|------|------|-------|------------------|
+| Self-Check | After brainstorming / before design gate | Are assumptions mapped? Requirements clear? No placeholders? | Brainstorming protocol complete |
+| Plan Sanity | After plan exists / before execution | Does plan cover spec? Task granularity OK? Verification commands defined? | Implementation plan ready |
+| Checkpoint | After each U-ID unit during execution | What was done vs planned? Deviations? Blockers? Risks emerging? | progress.md updated |
+| Final Review | After task complete / at handoff | All requirements met? Tests pass? Docs updated? Remaining risks acknowledged? | review.md template |
+
+Use the gate that matches the current moment. Lightweight tasks may skip Self-Check or Checkpoint.
+
+### Conditional Review Lenses
+
+For deeper review, apply optional lenses based on signals in the content being reviewed:
+
+| Lens | Trigger | Focus |
+|------|---------|-------|
+| Coherence Lens | All reviews | Internal consistency, contradictions, terminology drift |
+| Buildability Lens | All reviews | Can this actually be implemented? Dependencies, external blocks |
+| Scope Lens | Multiple priorities, new abstractions, unclear boundaries | Right-sizing, over-engineering, scope creep |
+| Risk Lens | Auth, data handling, external APIs, payments, migrations | Trust boundaries, threat model at plan level |
+| Completeness Lens | Large plans (>3 phases, >5 artifacts) | Gaps between spec and plan, missing edge cases |
+
+Record lens findings in `findings.md` or `progress.md`. Do not add formal scoring or JSON output — this is a thinking aid, not a governance gate.
 
 ## Critical Rules
 
