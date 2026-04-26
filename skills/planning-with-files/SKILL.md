@@ -37,7 +37,7 @@ For standard and deep tasks, the three planning files are the active execution l
 
 | Directory | Purpose |
 |---|---|
-| `docs/discovery/` | Problem framing, requirements, assumptions, optional product context |
+| `docs/discovery/` | Brainstorms, problem framing, requirements, assumptions, optional product context |
 | `docs/specs/` | Approved design/spec decisions |
 | `docs/plans/` | Implementation plans that can be replayed or modified |
 | `docs/reviews/` | Verification and review records |
@@ -48,8 +48,8 @@ Depth policy:
 | Depth | Durable artifact expectation |
 |---|---|
 | Lightweight | Usually PwF files only unless the user asks for a permanent record |
-| Standard | Create at least a spec and implementation plan before implementation |
-| Deep | Create discovery, spec, implementation plan, review, and learnings docs |
+| Standard | Brainstorm as needed, then create at least a spec and implementation plan before implementation |
+| Deep | Create brainstorm/discovery, spec, implementation plan, review, and learnings docs |
 
 Use clean-room Planning-with-Files-native language and artifacts. External workflows can inspire the process, but do not copy or import their code, commands, templates, or prose.
 
@@ -70,6 +70,22 @@ For standard/deep work, use this flow:
 ```
 
 `task_plan.md` should link to durable docs, but should not duplicate them in full. If implementation materially deviates from a spec or implementation plan, update the durable artifact instead of leaving the change only in chat or `progress.md`.
+
+## Brainstorming Protocol
+
+For standard/deep tasks, brainstorm before writing the design/spec or implementation plan. The goal is to make product, scope, and success decisions explicit so later planning does not invent behavior.
+
+1. **Context scan** — inspect relevant project files, docs, prior plans, and constraints before asking substantive questions.
+2. **Scope classification** — classify depth and work type; decide whether this is a small fix, feature, product-shaped task, architecture change, or research task.
+3. **Clarifying dialogue** — ask one question at a time when the answer changes scope, behavior, success criteria, or risk. Prefer concise multiple-choice options when useful.
+4. **Problem pressure test** — challenge whether this is the right problem, what outcome matters, what happens if nothing changes, and whether a simpler or higher-leverage framing exists.
+5. **Multi-perspective review** — consider user/product value, design/usability, engineering/feasibility, and business/viability when relevant.
+6. **Assumption mapping** — identify value, usability, viability, and feasibility assumptions. For product-shaped work, also consider go-to-market, ethics, strategy, and team assumptions.
+7. **Approaches considered** — present 2-3 meaningful options when alternatives exist, with tradeoffs and a recommendation.
+8. **Requirements capture** — write must-haves, non-goals, and acceptance criteria before design/spec work.
+9. **Design gate** — do not proceed to implementation planning until the design/spec direction is approved or explicitly accepted.
+
+Use `templates/brainstorm.md` when brainstorming produces durable decisions worth preserving. Keep lightweight tasks low ceremony: if the fix is obvious and low-risk, a short problem/success/blockers note in `task_plan.md` is enough.
 
 ## First Step for Complex Tasks
 
@@ -219,6 +235,7 @@ Use these bundled templates:
 - `templates/progress.md`
 - `templates/analytics_task_plan.md`
 - `templates/analytics_findings.md`
+- `templates/brainstorm.md`
 - `templates/discovery.md`
 - `templates/spec.md`
 - `templates/implementation_plan.md`

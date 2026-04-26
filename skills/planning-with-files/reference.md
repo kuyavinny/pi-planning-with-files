@@ -182,7 +182,7 @@ For standard and deep tasks, active execution files are not enough. Use durable 
 
 | Directory | Purpose | Typical Template |
 |-----------|---------|------------------|
-| `docs/discovery/` | Problem framing, requirements, assumptions, optional product context | `templates/discovery.md` |
+| `docs/discovery/` | Brainstorms, problem framing, requirements, assumptions, optional product context | `templates/brainstorm.md`, `templates/discovery.md` |
 | `docs/specs/` | Approved design/spec decisions | `templates/spec.md` |
 | `docs/plans/` | Executable implementation plans | `templates/implementation_plan.md` |
 | `docs/reviews/` | Verification and review records | `templates/review.md` |
@@ -191,7 +191,7 @@ For standard and deep tasks, active execution files are not enough. Use durable 
 Recommended flow:
 
 ```text
-start/classify -> discover -> requirements -> design/spec -> implementation plan -> execute with PwF -> verify/review -> compound learnings -> close/archive
+start/classify -> brainstorm -> requirements -> design/spec -> implementation plan -> execute with PwF -> verify/review -> compound learnings -> close/archive
 ```
 
 `task_plan.md` should link to durable artifacts, but not duplicate them in full.

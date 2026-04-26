@@ -40,6 +40,8 @@ For standard and deep tasks, Planning-with-Files also supports durable project r
 
 The root planning files answer "what are we doing right now?" Durable docs answer "why did we choose this, how was it built, and how can it be modified later?"
 
+For standard/deep tasks, Planning-with-Files now starts durable work with a brainstorming protocol: scan context, ask focused questions, pressure-test the problem, compare approaches, map assumptions, and capture requirements before design/spec and implementation planning.
+
 ### Activation
 
 A `task_plan.md` file in the project root **activates** workflow automation. When the extension detects an existing plan, it:

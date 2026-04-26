@@ -16,6 +16,7 @@ const requiredFiles = [
   "skills/planning-with-files/templates/progress.md",
   "skills/planning-with-files/templates/analytics_task_plan.md",
   "skills/planning-with-files/templates/analytics_findings.md",
+  "skills/planning-with-files/templates/brainstorm.md",
   "skills/planning-with-files/templates/discovery.md",
   "skills/planning-with-files/templates/spec.md",
   "skills/planning-with-files/templates/implementation_plan.md",
