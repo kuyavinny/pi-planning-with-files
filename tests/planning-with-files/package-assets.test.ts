@@ -97,6 +97,25 @@ describe("package assets", () => {
     expect(review).toContain("Completeness Lens");
   });
 
+  test("review template contains subagent boost examples", () => {
+    const review = readFileSync(resolve(root, "skills/planning-with-files/templates/review.md"), "utf8");
+    expect(review).toContain("Optional subagent boost");
+    expect(review).toContain("subagent({");
+  });
+
+  test("implementation plan template contains parallel unit execution guidance", () => {
+    const plan = readFileSync(resolve(root, "skills/planning-with-files/templates/implementation_plan.md"), "utf8");
+    expect(plan).toContain("Parallel Unit Execution");
+    expect(plan).toContain("worktree: true");
+  });
+
+  test("Pi skill contains subagent roles and worktree guidance", () => {
+    const skill = readFileSync(resolve(root, "skills/planning-with-files/SKILL.md"), "utf8");
+    expect(skill).toContain("## Subagent Roles in PwF");
+    expect(skill).toContain("Parallel work via git worktree");
+    expect(skill).toContain("worktree: true");
+  });
+
   test("implementation plan template contains execution protocol guidance", () => {
     const plan = readFileSync(resolve(root, "skills/planning-with-files/templates/implementation_plan.md"), "utf8");
     expect(plan).toContain("PwF Execution Protocol");

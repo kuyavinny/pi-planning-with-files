@@ -85,6 +85,32 @@ After each U-ID unit completes, run a quick checkpoint against this plan:
 
 Record checkpoint findings in `progress.md` before proceeding to the next unit.
 
+**Optional subagent boost**
+```typescript
+subagent({ agent: "reviewer", task: "Review the diff for this unit. Check for scope creep and untested paths.", async: true })
+```
+
+## Parallel Unit Execution
+
+When two or more units are independent and can run concurrently, offload them to parallel `worker` subagents with `worktree: true` so each unit has an isolated git checkout. The main agent merges results after reviewing the output files.
+
+**Example**
+```typescript
+subagent({
+  tasks: [
+    { agent: "worker", task: "Implement U3: email notification service" },
+    { agent: "worker", task: "Implement U4: push notification service" }
+  ],
+  worktree: true,
+  async: true
+})
+```
+
+Requirements:
+- The project must be inside a git repo with a clean working tree.
+- Each task should use the shared cwd (no conflicting per-task `cwd`).
+- After completion, review the per-worktree diff output and merge approved changes.
+
 ## Deviation Log
 
 | U-ID | Planned | Actual | Reason | Plan/Spec Updated |

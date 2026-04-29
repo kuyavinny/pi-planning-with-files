@@ -14,20 +14,25 @@ Update PwF templates and SKILL.md to support the multi-gate review protocol with
 | R3. Checkpoint guidance exists | U2: Update implementation_plan.md | Template has checkpoint reference between units |
 | R4. Final Review template is gate-aware | U3: Redesign review.md | review.md has gate sections |
 | R5. Conditional lens guidance exists | U1: Update SKILL.md | SKILL.md describes lenses and triggers |
-| R6. Template tests pass | U4: Tests | bun test passes |
+| R6. Subagent dispatch guidance exists | U1: Update SKILL.md | SKILL.md contains "Subagent Roles in PwF" and worktree examples |
+| R7. Parallel worktree guidance exists | U1: Update SKILL.md | SKILL.md and templates reference `worktree: true` for parallel subagent runs |
+| R8. Template tests pass | U4: Tests | bun test passes |
 
 ## Implementation Units
 
-### U1: Update SKILL.md with Review Protocol
+### U1: Update SKILL.md with Review Protocol + Subagent Integration
 - **Files:** `skills/planning-with-files/SKILL.md`
 - **Posture:** default
-- **Verification:** SKILL.md contains new "Review Protocol" section with gates and lenses
+- **Verification:** SKILL.md contains new "Review Protocol" section with gates and lenses, plus "Subagent Roles in PwF" section with worktree examples
 
 Steps:
 - [ ] Add "Review Protocol" section between "Implementation Execution Protocol" and "Critical Rules"
 - [ ] Document the four gates with when/who/what
 - [ ] Document conditional lenses with triggers/focus
 - [ ] Reference review protocol in the Integrated Workflow section (step 6)
+- [ ] Add "Subagent Roles in PwF" section after "Integrated Workflow"
+- [ ] Map each builtin subagent to a PwF stage and describe context isolation
+- [ ] Add parallel work via git worktree subsection with code examples
 
 ### U2: Update implementation_plan.md
 - **Files:** `skills/planning-with-files/templates/implementation_plan.md`

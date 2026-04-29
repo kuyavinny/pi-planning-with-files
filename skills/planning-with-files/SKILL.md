@@ -71,6 +71,67 @@ For standard/deep work, use this flow:
 
 `task_plan.md` should link to durable docs, but should not duplicate them in full. If implementation materially deviates from a spec or implementation plan, update the durable artifact instead of leaving the change only in chat or `progress.md`.
 
+## Subagent Roles in PwF
+
+Use subagents to isolate context‑heavy work so the main session stays lean. Each subagent produces a file artifact (e.g. `findings.md`, `context.md`, `review.md`) that the main agent reads briefly instead of retaining the full exploration in context.
+
+| PwF Stage | Subagent | Why it fits | Typical output |
+|---|---|---|---|
+| **0. Start / classify** | `scout` | Quick codebase recon when scope is unclear | `context.md` |
+| **1. Discover** | `scout` | Map relevant files, entry points, data flow | `context.md` |
+| **1. Discover** | `researcher` | Web/docs research for external dependencies or APIs | `findings.md` |
+| **1. Discover** | `context-builder` | Gather deep context and write handoff material | `context.md`, `meta-prompt.md` |
+| **2. Frame requirements** | `oracle` | Challenge assumptions and requirements before they harden | advisory notes (record in `findings.md`) |
+| **3. Design / spec** | `planner` | Create a concrete implementation plan from gathered context | `plan.md` linked from `task_plan.md` |
+| **3. Design / spec** | `oracle` | Review design direction for drift or missed constraints | advisory notes (record in `findings.md`) |
+| **4. Plan implementation** | `planner` | Turn spec into a phase‑level plan with verification steps | `implementation_plan.md` |
+| **4. Plan implementation** | `scout` | Verify file map and dependencies before committing to plan | updated `context.md` |
+| **5. Execute with PwF** | `worker` | Implement an approved unit when the main agent wants to delegate the write path | code + unit test files |
+| **5. Execute with PwF** | `delegate` | General‑purpose helper for isolated tasks (e.g. generate config, run a one‑off script) | task‑specific output file |
+| **6. Verify / review** | `reviewer` | Code review, edge‑case checks, test coverage | `review.md` |
+| **6. Verify / review** | `oracle` | Directional audit: does the result still match the original requirements? | advisory notes (record in `review.md`) |
+| **6. Verify / review** | `researcher` | Verify external assumptions still hold (API versions, docs) | `findings.md` |
+| **7. Compound learnings** | `delegate` or `reviewer` | Summarize lessons into a compact, durable record | `learnings.md` |
+
+### Context‑isolation rule
+
+When a subagent produces output, write it to a file and **read only the summary** back into the main context. Do not stream the full subagent transcript into the parent session unless the user explicitly asks for it.
+
+### Parallel work via git worktree
+
+When two or more subagents need to write to the same repository concurrently, use `worktree: true` to give each agent an isolated git worktree branched from `HEAD`. This avoids filesystem collisions and lets units or reviews run in parallel.
+
+**Example — parallel implementation**
+```typescript
+subagent({
+  tasks: [
+    { agent: "worker", task: "Implement auth middleware" },
+    { agent: "worker", task: "Implement API rate limiting" }
+  ],
+  worktree: true,
+  async: true
+})
+```
+
+**Example — parallel review**
+```typescript
+subagent({
+  tasks: [
+    { agent: "reviewer", task: "Review auth middleware correctness" },
+    { agent: "reviewer", task: "Review rate limiter tests" }
+  ],
+  worktree: true,
+  async: true
+})
+```
+
+Requirements for `worktree: true`:
+- The project must be inside a git repo.
+- The working tree must be clean.
+- Each task should use the shared cwd (no conflicting per-task `cwd`).
+
+After completion, per-worktree diff stats are appended to the output and patch files are written to artifacts.
+
 ## Brainstorming Protocol
 
 For standard/deep tasks, brainstorm before writing the design/spec or implementation plan. The goal is to make product, scope, and success decisions explicit so later planning does not invent behavior.

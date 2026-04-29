@@ -18,6 +18,11 @@
 - [ ] Success criteria are verifiable
 - [ ] Scope is right-sized (not over-engineered)
 
+**Optional subagent boost**
+```typescript
+subagent({ agent: "oracle", task: "Challenge the assumptions and requirements in the current brainstorm. What are we missing?", async: true })
+```
+
 ## Plan Sanity
 <!-- Use before execution, after the implementation plan exists -->
 - [ ] Plan covers all spec requirements
@@ -26,11 +31,21 @@
 - [ ] File map is complete (create/modify/test paths identified)
 - [ ] Risks are documented with mitigations
 
+**Optional subagent boost**
+```typescript
+subagent({ agent: "reviewer", task: "Review the implementation plan for gaps, missing edge cases, and unrealistic estimates.", async: true })
+```
+
 ## Checkpoint Review
 <!-- Use after each U-ID unit during execution -->
 | U-ID | Planned | Actual | Deviation | Blockers | Risks Emerged |
 |------|---------|--------|-----------|----------|---------------|
 |      |         |        |           |          |               |
+
+**Optional subagent boost**
+```typescript
+subagent({ agent: "reviewer", task: "Review the diff for this unit. Check for scope creep and untested paths.", async: true })
+```
 
 ## Final Review
 <!-- Use at task completion / handoff -->
@@ -55,6 +70,20 @@
 
 ### Decision
 [Ready / needs changes / deferred with rationale]
+
+**Optional subagent boost (parallel)**
+```typescript
+subagent({
+  tasks: [
+    { agent: "reviewer", task: "Review implementation correctness, tests, and edge cases." },
+    { agent: "oracle", task: "Challenge whether the approach still matches the original requirements." },
+    { agent: "researcher", task: "Verify any external API or dependency assumptions are still valid." }
+  ],
+  async: true
+})
+```
+
+For parallel reviews that also modify files, add `worktree: true` to isolate each agent in its own git worktree.
 
 ---
 

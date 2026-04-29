@@ -4,6 +4,7 @@
 - Relevant existing files/docs:
 - Similar prior work:
 - Constraints found:
+- **Optional subagent boost:** Use `scout` for fast codebase recon or `context-builder` for deep handoff material.
 
 ## Scope Classification
 - Depth: lightweight / standard / deep
@@ -35,6 +36,8 @@
 |------------|----------|------|------------|
 |            |          |      |            |
 
+**Optional subagent boost:** Use `oracle` to challenge assumptions and surface blind spots before they harden.
+
 ## Approaches Considered
 | Approach | Pros | Cons | Decision |
 |----------|------|------|----------|
@@ -56,6 +59,8 @@
 ## Design Gate
 - Recommended next artifact: spec / implementation plan / no further planning needed
 - Approval status: pending / approved / changes requested
+
+**Optional subagent boost:** Before the design gate, run `oracle` to challenge the direction and catch drift.
 
 ## Links
 - Active plan: `task_plan.md`

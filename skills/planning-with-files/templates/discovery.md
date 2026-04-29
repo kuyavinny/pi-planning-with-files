@@ -23,6 +23,11 @@
 ## Open Questions
 1. [Question]
 
+## Subagent Boost
+- **Codebase recon:** Use `scout` to map relevant files, entry points, and data flow. Write output to `context.md`.
+- **External research:** Use `researcher` to verify API versions, best practices, or dependency compatibility. Write output to `findings.md`.
+- **Deep context handoff:** Use `context-builder` to produce `context.md` and `meta-prompt.md` for downstream planning.
+
 ## Links
 - Active plan: `task_plan.md`
 - Findings: `findings.md`
