@@ -117,6 +117,8 @@ RULES:
 
 **Key Insight:** Manus originally used `todo.md` for task planning but found ~33% of actions were spent updating it. Shifted to dedicated planner agent calling executor sub-agents.
 
+**PwF Integration:** Use the `subagent` tool to offload context-heavy work to specialized agents (`scout`, `researcher`, `planner`, `worker`, `reviewer`, `oracle`, `delegate`, `context-builder`). Each subagent writes its output to a file artifact (e.g. `context.md`, `findings.md`, `review.md`) that the main agent reads briefly, keeping the parent context lean. Prefer `async: true` for background execution so the main session does not block. Use `worktree: true` when parallel subagents need isolated git checkouts.
+
 ### Strategy 3: Context Offloading
 
 **Tool Design:**

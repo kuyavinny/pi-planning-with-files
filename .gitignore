@@ -13,7 +13,8 @@ Thumbs.db
 node_modules/
 package-lock.json
 
-# Development planning files (created in project root at runtime)
+# Local pi-subagents clone for reference
+pi-subagents/
 task_plan.md
 findings.md
 progress.md

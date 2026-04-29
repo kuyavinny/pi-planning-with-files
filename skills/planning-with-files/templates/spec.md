@@ -14,6 +14,8 @@
 |----------|------|------|----------|
 |          |      |      |          |
 
+**Optional subagent boost:** Before finalizing the chosen design, run `oracle` to challenge the approach and catch drift from requirements.
+
 ## Chosen Design
 [Describe the selected design]
 
@@ -33,6 +35,8 @@
 
 ## Test Strategy
 [How correctness will be verified]
+
+**Optional subagent boost:** Use `reviewer` to audit test coverage and edge cases after implementation.
 
 ## Deferred Work
 - [Explicitly deferred item]

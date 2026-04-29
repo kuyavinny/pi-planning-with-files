@@ -26,3 +26,5 @@
 - Active plan: `task_plan.md`
 - Findings: `findings.md`
 - Progress: `progress.md`
+
+**Optional subagent boost:** Use `delegate` or `reviewer` to summarize lessons into a compact `learnings.md` after the task is complete.

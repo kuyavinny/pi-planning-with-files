@@ -66,6 +66,7 @@ Phase 1
 <!-- 
   WHAT: Understand what needs to be done and gather initial information.
   WHY: Starting without understanding leads to wasted effort. This phase prevents that.
+  OPTIONAL SUBAGENTS: Use `scout` for fast codebase recon, `researcher` for external docs/API research, or `context-builder` for deep handoff material.
 -->
 - [ ] Understand user intent
 - [ ] Identify constraints and requirements
@@ -82,6 +83,7 @@ Phase 1
 <!-- 
   WHAT: Decide how you'll approach the problem and what structure you'll use.
   WHY: Good planning prevents rework. Document decisions so you remember why you chose them.
+  OPTIONAL SUBAGENTS: Use `planner` to draft the implementation plan, `oracle` to challenge direction before committing, or `scout` to verify file maps.
 -->
 - [ ] Define technical approach
 - [ ] Create project structure if needed
@@ -92,6 +94,7 @@ Phase 1
 <!-- 
   WHAT: Actually build/create/write the solution.
   WHY: This is where the work happens. Break into smaller sub-tasks if needed.
+  OPTIONAL SUBAGENTS: Use `worker` to delegate an approved unit, or `delegate` for isolated helper tasks. Prefer `async: true` so the main session does not block.
 -->
 - [ ] Execute the plan step by step
 - [ ] Write code to files before executing
@@ -102,6 +105,7 @@ Phase 1
 <!-- 
   WHAT: Verify everything works and meets requirements.
   WHY: Catching issues early saves time. Document test results in progress.md.
+  OPTIONAL SUBAGENTS: Use `reviewer` for code review, `oracle` for directional audit, or `researcher` to re-verify external assumptions.
 -->
 - [ ] Verify all requirements met
 - [ ] Document test results in progress.md
@@ -112,6 +116,7 @@ Phase 1
 <!-- 
   WHAT: Final review and handoff to user.
   WHY: Ensures nothing is forgotten and deliverables are complete.
+  OPTIONAL SUBAGENTS: Use `delegate` or `reviewer` to summarize outcomes into `learnings.md`.
 -->
 - [ ] Review all output files
 - [ ] Ensure deliverables are complete
