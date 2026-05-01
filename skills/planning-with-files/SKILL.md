@@ -132,6 +132,53 @@ Requirements for `worktree: true`:
 
 After completion, per-worktree diff stats are appended to the output and patch files are written to artifacts.
 
+## Hard Orchestration Boundary
+
+The main session is the **orchestrator only**. It must not perform implementation, research, or codebase-exploration work directly. All non-orchestration work must be delegated to subagents.
+
+### Main agent's allowed scope
+
+The main agent may ONLY:
+
+| Operation | Purpose |
+|-----------|--------|
+| Read `task_plan.md`, `findings.md`, `progress.md` | Plan tracking |
+| Write / edit `task_plan.md`, `findings.md`, `progress.md` | PwF file maintenance |
+| Read subagent output files (`context.md`, `plan.md`, `review.md`, `research.md`) | Ingest subagent findings |
+| Delegate work via `subagent(...)` | All implementation, research, exploration |
+| Coordinate via `intercom(...)` | Cross-session communication |
+| Ask clarifying questions via `interview(...)` | Requirement gathering |
+| Run `bash` for git status, file listing, and subagent artifact inspection | Basic project management |
+| Use `planning_with_files_*` tools | PwF automation |
+
+### What must be delegated
+
+| Work type | Subagent | Rationale |
+|-----------|----------|-----------|
+| Codebase exploration (reading source files beyond entry-point identification) | `scout` or `context-builder` | Prevents context bloat in main session |
+| Web / documentation research | `researcher` | Keeps untrusted external content out of main context |
+| Code editing and file creation | `worker` | Single-writer thread pattern |
+| Code review | `reviewer` | Fresh-context adversarial review |
+| Implementation planning from gathered context | `planner` | Dedicated planning context |
+| Decision-consistency audit | `oracle` | Inherited decision contract validation |
+| General-purpose helper tasks | `delegate` | Lightweight isolated work |
+
+### Self-check (before every action)
+
+Before any tool call that is NOT one of the allowed operations above:
+
+1. Ask: *Am I about to read a source file, run a web search, fetch external content, or edit code?*
+2. If yes: **STOP.** The action is out of scope for the orchestrator. Delegate it to the appropriate subagent instead.
+3. If the result is needed to update PwF files: wait for the subagent to complete, read its output file, and incorporate findings into `findings.md` or `task_plan.md`.
+4. If uncertain whether an action should be delegated: err on the side of delegation.
+
+### Violation handling
+
+If the main agent inadvertently performs a non-orchestration action:
+- Record the violation in `progress.md` under a `## Violations` section
+- Note what should have been delegated instead
+- The oracle subagent may flag repeated violations during its consistency audit
+
 ## Brainstorming Protocol
 
 For standard/deep tasks, brainstorm before writing the design/spec or implementation plan. The goal is to make product, scope, and success decisions explicit so later planning does not invent behavior.
@@ -334,6 +381,10 @@ If an action failed, the next action must change something: input, approach, too
 
 If all phases are complete and the user asks for more work, add new phases to `task_plan.md` before continuing.
 
+### 8. Orchestrate, Don't Implement
+
+The main agent is the orchestrator. It must delegate all non-PwF work to subagents. See [Hard Orchestration Boundary](#hard-orchestration-boundary) for the full contract. Before reading source files, running web searches, or editing code: STOP and delegate to the appropriate subagent.
+
 ## 3-Strike Error Protocol
 
 ```text
@@ -393,3 +444,4 @@ In Pi, native extension behavior is the normal path. Scripts are not required fo
 | Create planning files in the skill directory | Create them in the project root |
 | Continue new work after completion without updating the plan | Add new phases first |
 | Treat U-ID phases as a substitute for design/spec docs | Create durable docs for standard/deep work and link them from `task_plan.md` |
+| Perform implementation, research, or codebase exploration in the main session | Delegate to subagents per [Hard Orchestration Boundary](#hard-orchestration-boundary) |
